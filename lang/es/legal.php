@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 return [
+    'privacy_contact' => 'Contacto para ejercer derechos de privacidad',
     'rights_short' => 'Puedes ejercer tus derechos de acceso, rectificación, supresión y los demás derechos aplicables.',
     'collection_unavailable' => 'La recogida de datos no está disponible hasta que el responsable configure su información y conservación.',
     'captcha_fallback' => 'Puede resolver la operación sin servicios externos. La verificación externa es opcional y requiere permiso.',

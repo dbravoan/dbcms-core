@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 return [
+    'privacy_contact' => 'Contacte per exercir els drets de privacitat',
     'rights_short' => 'Podeu exercir els drets d’accés, rectificació, supressió i els altres drets aplicables.',
     'collection_unavailable' => 'La recollida de dades no està disponible fins que el responsable configuri la informació i la conservació.',
     'captcha_fallback' => 'Podeu resoldre l’operació sense serveis externs. La verificació externa és opcional i requereix permís.',

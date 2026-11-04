@@ -251,10 +251,16 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-[color:var(--admin-border)]/80">
                 <div class="space-y-1.5 md:col-span-2">
-                    <label class="admin-field-label font-bold text-[color:var(--admin-text)] text-xs">{{ __('admin.settings.dpo_email') }}</label>
-                    <input type="email" name="gdpr_dpo_email" value="{{ old('gdpr_dpo_email', $settings['gdpr.dpo_email'] ?? '') }}"
+                    <label for="legal_dpo_contact" class="admin-field-label font-bold text-[color:var(--admin-text)] text-xs">{{ __('legal.dpo') }}</label>
+                    <input id="legal_dpo_contact" type="text" maxlength="500" name="legal_dpo_contact" value="{{ old('legal_dpo_contact', $settings['legal.dpo_contact'] ?? '') }}"
                            class="admin-control w-full bg-[color:var(--admin-surface)] border border-[color:var(--admin-border)] focus:border-[color:var(--admin-accent)] rounded-lg px-3 py-2 text-[color:var(--admin-text)] text-xs outline-none transition-colors"
                            placeholder="{{ __('admin.settings.ph_dpo') }}">
+                </div>
+
+                <div class="space-y-1.5 md:col-span-2">
+                    <label for="legal_privacy_email" class="admin-field-label font-bold text-[color:var(--admin-text)] text-xs">{{ __('legal.privacy_contact') }}</label>
+                    <input id="legal_privacy_email" type="email" maxlength="255" name="legal_privacy_email" value="{{ old('legal_privacy_email', $settings['legal.privacy_email'] ?? '') }}"
+                           class="admin-control w-full bg-[color:var(--admin-surface)] border border-[color:var(--admin-border)] focus:border-[color:var(--admin-accent)] rounded-lg px-3 py-2 text-[color:var(--admin-text)] text-xs outline-none transition-colors">
                 </div>
 
                 <div class="space-y-1.5">

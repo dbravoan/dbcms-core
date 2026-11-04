@@ -35,7 +35,7 @@ class SiteSettingsUpdateRequest extends FormRequest
      */
     public function rules(): array
     {
-        $rules = [];
+        $rules = ['legal_processing' => ['prohibited']];
         foreach (SiteSettingsService::rules() as $key => $constraints) {
             $rules[str_replace('.', '_', $key)] = $constraints;
         }

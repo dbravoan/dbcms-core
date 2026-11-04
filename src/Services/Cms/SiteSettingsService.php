@@ -45,7 +45,6 @@ final class SiteSettingsService
             'legal.commercial_activity' => ['boolean'],
             'legal.registry_required' => ['boolean'],
             'legal.dpo_required' => ['boolean'],
-            'legal.processing' => ['array'],
             'legal.activity' => ['nullable', 'string', 'max:255'],
 
             'contact.email' => ['nullable', 'email', 'max:120'],
@@ -54,7 +53,6 @@ final class SiteSettingsService
             'contact.whatsapp' => ['nullable', 'string', 'max:50'],
             'contact.schedule' => ['nullable', 'string', 'max:150'],
 
-            'gdpr.dpo_email' => ['nullable', 'email', 'max:120'],
             'gdpr.page_notice' => ['nullable', 'string', 'max:255'],
             'gdpr.page_privacy' => ['nullable', 'string', 'max:255'],
             'gdpr.page_terms' => ['nullable', 'string', 'max:255'],

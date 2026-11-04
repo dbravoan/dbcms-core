@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace DbCms\Core\Observers;
 
+use DbCms\Core\Content\Pages\Models\PageSection;
 use DbCms\Core\Services\Cms\PageCacheService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
@@ -23,6 +24,7 @@ final class PageCacheObserver
 
     public function saved(Model $model): void
     {
+        $this->invalidateSectionOwner($model);
         if (DB::transactionLevel() > 0) {
             $global = $this->isSiteWide($model);
             $type = $model->getTable();
@@ -62,6 +64,7 @@ final class PageCacheObserver
 
     public function deleted(Model $model): void
     {
+        $this->invalidateSectionOwner($model);
         if (DB::transactionLevel() > 0) {
             DB::afterCommit(function () use ($model): void {
                 if ($this->isSiteWide($model)) {
@@ -82,6 +85,7 @@ final class PageCacheObserver
 
     public function restored(Model $model): void
     {
+        $this->invalidateSectionOwner($model);
         if ($this->isSiteWide($model)) {
             $this->cache->invalidate();
 
@@ -89,6 +93,25 @@ final class PageCacheObserver
         }
 
         $this->cache->invalidateType($model->getTable());
+    }
+
+    private function invalidateSectionOwner(Model $model): void
+    {
+        if (! $model instanceof PageSection) {
+            return;
+        }
+        $owners = array_unique([(int) $model->getAttribute('page_id'), (int) $model->getRawOriginal('page_id')]);
+        $dependencies = [];
+        foreach ($owners as $id) {
+            if ($id > 0) {
+                $dependencies[] = $this->cache->dependencyKey('pages', $id);
+            }
+        }
+        // A page with no published sections still depends on its section membership.
+        $this->cache->invalidateDependencies($dependencies);
+        if (DB::transactionLevel() > 0) {
+            DB::afterCommit(fn () => $this->cache->invalidateDependencies($dependencies));
+        }
     }
 
     /**

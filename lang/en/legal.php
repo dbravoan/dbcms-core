@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 return [
+    'privacy_contact' => 'Contact for privacy rights requests',
     'rights_short' => 'You may exercise your rights of access, rectification, erasure and other applicable rights.',
     'collection_unavailable' => 'Data collection is unavailable until the controller configures its information and retention policy.',
     'captcha_fallback' => 'You can solve the calculation without external services. External verification is optional and requires permission.',
