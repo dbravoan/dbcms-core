@@ -1,0 +1,54 @@
+@import 'tailwindcss' source(none);
+@source '../../src';
+@source '../views';
+@source not '../views/themes/admin';
+@import './admin-utility-sources.css';
+
+/*
+ * dbCMS build-time Tailwind (v4).
+ *
+ * Only shared application views belong here. Each front/backoffice theme has
+ * its own source-scoped entrypoint, so inactive templates never enter this
+ * bundle and switching installed themes needs no rebuild.
+ */
+
+/*
+ * Safelist for values assembled at runtime from PHP (block renderers emitting
+ * HTML strings, per-theme accent utilities and Alpine :class toggles). Tailwind
+ * cannot see these in Blade, so they are declared explicitly here.
+ */
+@source inline("bg-[#00FF99] bg-[#00FF99]/5 bg-[#00FF99]/10 bg-[#00FF99]/15 bg-[#00FF99]/20 bg-[#00FF99]/30 bg-[#00FF99]/40 text-[#00FF99] border-[#00FF99] border-[#00FF99]/30 border-[#00FF99]/40 ring-[#00FF99]");
+@source inline("bg-[#0090A8] bg-[#0090A8]/5 bg-[#0090A8]/10 bg-[#0090A8]/20 text-[#0090A8] border-[#0090A8] border-[#0090A8]/20 border-[#0090A8]/30 ring-[#0090A8] focus:border-[#0090A8] focus:ring-[#0090A8]");
+@source inline("bg-[#0A0A0A] bg-[#0B0B0B] bg-[#0D0D0D] bg-[#0E0E0E] bg-[#0E0E0E]/95 bg-[#0F0F0F] bg-[#101010] bg-[#111111] bg-[#121212] bg-[#141414] bg-[#151515] bg-[#161616] bg-[#171717] bg-[#181818] bg-[#1A1A1A] bg-[#1C1C1C] bg-[#1e1e1e] bg-[#1F1F1F] bg-[#202020] bg-[#222222] bg-[#252525] bg-[#EFEFEF] bg-[#07050e] bg-[#0e0a1a] bg-[#120c22] bg-[#0a0712] bg-[#FFFDF8]");
+
+/*
+ * Filter skins live outside Blade: neutral tokens come from
+ * `config/front_filter_ui.php`; each theme's `filter.json` is scanned by its
+ * own entrypoint.
+ */
+@source "../../config/front_filter_ui.php";
+
+/* Legacy dark hex containers repainted by the backoffice theme stylesheet. */
+@source inline("bg-[#0D0D0D] bg-[#0F0F11] bg-[#131313] bg-[#191919] bg-[#232323] bg-[#2A2A2A] bg-[#2E2E2E]");
+
+@import './generated/fonts.css';
+@import './themes.css';
+@import '@fortawesome/fontawesome-free/css/all.css';
+@import './admin-ui.css';
+
+@layer base {
+    [x-cloak] {
+        display: none !important;
+    }
+}
+
+/* ------------------------------------------------------------------ RTL
+   El árabe (mercado CCG) declara dir="rtl" en el layout: aquí solo se
+   corrige la dirección de lectura sin tocar cada tema. */
+[dir="rtl"] {
+    text-align: right;
+}
+
+[dir="rtl"] .rtl-flip {
+    transform: scaleX(-1);
+}

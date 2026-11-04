@@ -1,0 +1,40 @@
+{
+    "name": "dbravoan/dbcms-core",
+    "type": "library",
+    "description": "dbCMS core for Laravel",
+    "license": "MIT",
+    "require": {
+        "php": "^8.4",
+        "composer/semver": "^3.4",
+        "laravel/framework": "^13.0",
+        "laravel/passport": "^13.0",
+        "league/flysystem-aws-s3-v3": "^3.0",
+        "nyholm/psr7": "^1.8",
+        "ext-dom": "*",
+        "ext-fileinfo": "*",
+        "ext-gd": "*",
+        "ext-intl": "*",
+        "ext-pdo_mysql": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "DbCms\\Core\\": "src/",
+            "DbCms\\Core\\Database\\Factories\\": "database/factories/",
+            "DbCms\\Core\\Database\\Seeders\\": "database/seeders/"
+        },
+        "files": [
+            "src/Support/helpers.php"
+        ]
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "DbCms\\Core\\Providers\\CoreServiceProvider"
+            ]
+        },
+        "dbcms": {
+            "identifier": "core",
+            "repository": "https://github.com/dbravoan/dbcms-core"
+        }
+    }
+}
