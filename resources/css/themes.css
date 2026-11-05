@@ -1,0 +1,284 @@
+/**
+ * Front-office theme design systems.
+ *
+ * Shared semantic components and motion defaults. Theme-specific rules live in
+ * themes/{id}/theme.css and are loaded only for the active public theme.
+ *
+ * IMPORTANT: selectors are scoped to `.front-{theme}`, NOT `.theme-{id}`.
+ * `.theme-{adminTheme}` on <html> identifies the *backoffice* theme (used to skin
+ * the frontoffice admin bar); the front theme uses the separate `front-*` class.
+ */
+
+/* Animate.css replacement: only the entry animation actually used. */
+.animate__animated {
+    animation-duration: 1s;
+    animation-fill-mode: both;
+}
+
+/**
+ * Accessibility: honour the visitor's motion preference across every front theme.
+ * Disables decorative animation/transition without breaking layout.
+ */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+
+    [data-scroll-magic] {
+        opacity: 1 !important;
+        transform: none !important;
+    }
+}
+
+.animate__animated.animate__fadeIn {
+    animation-name: kf-fade-in;
+}
+
+@keyframes kf-fade-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* ==================================================================== */
+/* Shared component design system (blocks, widgets, section renderer)    */
+/* ==================================================================== */
+/* Every front theme declares the same semantic tokens. Blocks and the
+   section renderer consume them through the `.cms-*` classes below, so
+   the same markup looks native on every theme: light themes get light
+   surfaces and their own accent, dark themes keep glass and glow.        */
+
+/* Semantic components consumed by blocks, widgets and the section renderer. */
+.cms-card {
+    background: var(--cms-surface);
+    color: var(--cms-fg);
+    border: 1px solid var(--cms-border);
+    border-radius: var(--cms-radius);
+    box-shadow: var(--cms-glow, none);
+    -webkit-backdrop-filter: var(--cms-card-blur, none);
+    backdrop-filter: var(--cms-card-blur, none);
+}
+
+.cms-surface-2 {
+    background-color: var(--cms-surface-2);
+}
+
+.cms-text {
+    color: var(--cms-fg);
+}
+
+.cms-text-muted {
+    color: var(--cms-fg-muted);
+}
+
+.cms-accent {
+    color: var(--cms-accent);
+}
+
+.cms-accent-bg {
+    background-color: var(--cms-accent);
+    color: var(--cms-accent-contrast);
+}
+
+.cms-accent-soft {
+    background-color: var(--cms-accent-soft);
+}
+
+.cms-border {
+    border-color: var(--cms-border);
+}
+
+.cms-border-strong {
+    border-color: var(--cms-border-strong);
+}
+
+.cms-border-accent {
+    border-color: var(--cms-accent-border);
+}
+
+.cms-chip {
+    background: var(--cms-accent-soft);
+    color: var(--cms-accent);
+    border: 1px solid var(--cms-accent-border);
+}
+
+.cms-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-weight: 700;
+    border-radius: var(--cms-radius, 8px);
+    transition: all 0.25s ease;
+    cursor: pointer;
+    letter-spacing: 0.02em;
+}
+
+.cms-btn-primary {
+    background: transparent;
+    border: 2px solid var(--cms-accent);
+    color: var(--cms-accent);
+}
+
+.cms-btn-primary:hover {
+    background: var(--cms-accent);
+    color: var(--cms-accent-contrast);
+    box-shadow: var(--cms-glow, none);
+}
+
+.cms-btn-ghost {
+    background: var(--cms-surface);
+    border: 1px solid var(--cms-border-strong);
+    color: var(--cms-fg);
+}
+
+.cms-btn-ghost:hover {
+    border-color: var(--cms-accent);
+    color: var(--cms-accent);
+}
+
+/* Data-driven section container styles (legacy `cyber-card` payloads) map to
+   the same tokens so pre-existing content looks native on every theme. */
+
+/* Hover semantics for the shared components (Tailwind cannot prefix custom
+   classes, so the hover/group states live here as plain CSS). */
+.cms-hover-accent:hover,
+.group:hover .cms-hover-accent {
+    color: var(--cms-accent);
+}
+
+.cms-hover-border-accent:hover,
+.group:hover .cms-hover-border-accent {
+    border-color: var(--cms-accent-border);
+}
+
+.cms-hover-border-strong:hover,
+.group:hover .cms-hover-border-strong {
+    border-color: var(--cms-border-strong);
+}
+
+.cms-hover-accent-bg:hover {
+    background-color: var(--cms-accent);
+    color: var(--cms-accent-contrast);
+    border-color: var(--cms-accent-border);
+}
+
+/* ==================================================================== */
+/* Entrance animation keyframes (scroll-magic engine)                    */
+/* ==================================================================== */
+/* The section renderer emits `animate__<effect>` for `data-scroll-effect`;
+   these curated keyframes give every supported behaviour an elegant,
+   cubic-bezier motion instead of the default linear jump.               */
+
+.animate__fadeInUp {
+    animation-name: cms-kf-fade-in-up;
+}
+
+.animate__fadeInDown {
+    animation-name: cms-kf-fade-in-down;
+}
+
+.animate__fadeInLeft {
+    animation-name: cms-kf-fade-in-left;
+}
+
+.animate__fadeInRight {
+    animation-name: cms-kf-fade-in-right;
+}
+
+.animate__zoomIn {
+    animation-name: cms-kf-zoom-in;
+}
+
+.animate__slideInLeft {
+    animation-name: cms-kf-slide-in-left;
+}
+
+.animate__slideInRight {
+    animation-name: cms-kf-slide-in-right;
+}
+
+@keyframes cms-kf-fade-in-up {
+    from {
+        opacity: 0;
+        transform: translate3d(0, 32px, 0);
+    }
+    to {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+    }
+}
+
+@keyframes cms-kf-fade-in-down {
+    from {
+        opacity: 0;
+        transform: translate3d(0, -32px, 0);
+    }
+    to {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+    }
+}
+
+@keyframes cms-kf-fade-in-left {
+    from {
+        opacity: 0;
+        transform: translate3d(-40px, 0, 0);
+    }
+    to {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+    }
+}
+
+@keyframes cms-kf-fade-in-right {
+    from {
+        opacity: 0;
+        transform: translate3d(40px, 0, 0);
+    }
+    to {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+    }
+}
+
+@keyframes cms-kf-zoom-in {
+    from {
+        opacity: 0;
+        transform: scale3d(0.94, 0.94, 0.94);
+    }
+    to {
+        opacity: 1;
+        transform: scale3d(1, 1, 1);
+    }
+}
+
+@keyframes cms-kf-slide-in-left {
+    from {
+        opacity: 0;
+        transform: translate3d(-60px, 0, 0);
+    }
+    to {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+    }
+}
+
+@keyframes cms-kf-slide-in-right {
+    from {
+        opacity: 0;
+        transform: translate3d(60px, 0, 0);
+    }
+    to {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+    }
+}
