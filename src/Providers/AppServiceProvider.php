@@ -67,6 +67,7 @@ use DbCms\Core\Services\Install\InstallationProvisioningService;
 use DbCms\Core\Services\Install\InstallationViewService;
 use DbCms\Core\Services\Search\EntitySearchService;
 use DbCms\Core\Services\Search\NoSearchAnalytics;
+use DbCms\Core\Services\Security\PermissionCatalog;
 use DbCms\Core\Services\Storage\ExternalStorageService;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
@@ -148,7 +149,7 @@ class AppServiceProvider extends ServiceProvider
         // Enforce strict Eloquent behavior to prevent N+1 issues and unfillable attributes
         Model::shouldBeStrict(! $this->app->isProduction());
 
-        // Safety net: a production deployment must never leak stack traces, even if
+        // Safety net: a production application must never leak stack traces, even if
         // APP_DEBUG was left enabled by mistake in .env.
         if ($this->app->isProduction()) {
             config([
@@ -273,19 +274,12 @@ class AppServiceProvider extends ServiceProvider
             return null;
         });
 
-        Gate::define('access:admin', fn (User $user): bool => $user->isAdmin() || $user->hasPermission('access:admin') || $user->roles()->exists());
-        Gate::define('manage:modules', fn (User $user): bool => $user->hasPermission('manage:modules'));
-        Gate::define('manage:blocks', fn (User $user): bool => $user->hasPermission('manage:blocks'));
-        Gate::define('manage:users', fn (User $user): bool => $user->hasPermission('manage:users'));
-        Gate::define('manage:posts', fn (User $user): bool => $user->hasPermission('manage:posts'));
-        Gate::define('manage:pages', fn (User $user): bool => $user->hasPermission('manage:pages'));
-        Gate::define('manage:forms', fn (User $user): bool => $user->hasPermission('manage:forms'));
-        Gate::define('manage:shop', fn (User $user): bool => $user->hasPermission('manage:shop'));
-        Gate::define('manage:menus', fn (User $user): bool => $user->hasPermission('manage:menus'));
-        Gate::define('manage:themes', fn (User $user): bool => $user->hasPermission('manage:themes'));
-        Gate::define('manage:media', fn (User $user): bool => $user->hasPermission('manage:media'));
-        Gate::define('manage:storage', fn (User $user): bool => $user->hasPermission('manage:storage'));
-        Gate::define('manage:seo', fn (User $user): bool => $user->hasPermission('manage:seo'));
-
+        // Every permission in the canonical catalogue is a Gate. Modules can
+        // add permissions through their Composer/module manifests; the access
+        // provisioner persists them and this loop makes them usable by views.
+        $permissions = PermissionCatalog::definitions($this->app->make(ComposerPackages::class)->modules());
+        foreach ($permissions as $permission => $label) {
+            Gate::define($permission, static fn (User $user): bool => $user->hasPermission($permission));
+        }
     }
 }

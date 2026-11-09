@@ -13,15 +13,14 @@ use DbCms\Core\DTOs\BrandIdentity;
  * environment overrides. Brand values must never be hardcoded in config or
  * views — read them from here.
  *
- * @see docs/18_THEME_MANIFEST_AND_BRAND_REFERENCE.md
+ * @see docs/EXTENSIONS.md
  */
 interface BrandServiceInterface
 {
     /**
      * Validated active backoffice theme identifier.
      *
-     * Falls back to `dbcms` when `CMS_BRAND` points to a missing theme, and to an
-     * empty string when even the fallback theme is unavailable (base views).
+     * @throws \DomainException when the configured theme is not installed.
      */
     public function activeTheme(): string;
 

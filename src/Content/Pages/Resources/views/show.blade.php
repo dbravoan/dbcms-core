@@ -1,4 +1,4 @@
-@extends(app(\DbCms\Core\Services\Cms\FrontViewResolver::class)->layout())
+@extends($layout ?? app(\DbCms\Core\Services\Cms\FrontViewResolver::class)->layout())
 
 @section('title', $translation->meta_title ?? $translation->title ?? '')
 @section('meta_description', $translation->meta_description ?? '')

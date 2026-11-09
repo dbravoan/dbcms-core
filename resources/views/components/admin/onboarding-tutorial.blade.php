@@ -17,12 +17,14 @@
             desc: @js(__('admin.onboarding.step1_desc')),
             target: null
         },
+        @if(app()->environment(['local', 'testing']) && config('cms.quick_login', false))
         {
             title: @js(__('admin.onboarding.step2_title')),
             badge: @js(__('admin.onboarding.step2_badge')),
             desc: @js(__('admin.onboarding.step2_desc')),
             target: '#nav-persona-switcher'
         },
+        @endif
         {
             title: @js(__('admin.onboarding.step3_title')),
             badge: @js(__('admin.onboarding.step3_badge')),
@@ -35,12 +37,14 @@
             desc: @js(__('admin.onboarding.step4_desc')),
             target: '#nav-pages'
         },
+        @if(!app()->isProduction() && config('cms.adminer_url'))
         {
             title: @js(__('admin.onboarding.step7_title')),
             badge: @js(__('admin.onboarding.step7_badge')),
             desc: @js(__('admin.onboarding.step7_desc')),
             target: '#nav-adminer'
-        }
+        },
+        @endif
     ],
     init() {
         if (!localStorage.getItem('dbcms_tour_completed')) {

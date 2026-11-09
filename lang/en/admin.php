@@ -7,7 +7,7 @@ declare(strict_types=1);
 | Backoffice UI translations (English)
 |--------------------------------------------------------------------------
 | Structured keys for the admin panel. Keep this file in perfect parity with
-| lang/es/admin.php (enforced by tests/Architecture/TranslationParityTest.php).
+| lang/es/admin.php (enforced by workbench/tests/Architecture/TranslationParityTest.php).
 */
 
 return [
@@ -101,8 +101,10 @@ return [
             'search' => 'Search',
             'filters' => 'Filters & searches',
             'pages' => 'Pages',
+            'media' => 'Media',
             'blog_categories' => 'Blog categories',
             'blog_posts' => 'Blog posts',
+            'comments' => 'Comments',
             'galleries' => 'Media galleries',
             'content_audit' => 'Audit & Quality',
             'ai_assistant' => 'AI Copilot Studio',
@@ -588,6 +590,8 @@ return [
         'market_settings_title' => 'Market settings',
         'market_settings_desc' => 'One value per active market. Markets live in Settings → Markets.',
         'settings_title' => 'Settings & API Keys',
+        'inactive' => 'Inactive',
+        'settings_inactive_notice' => 'This module is inactive. You can review and save its settings; site runtime requires activating it.',
         'meta_help_title' => 'Where to get your Pixel ID and CAPI Token?',
         'meta_help_desc' => 'In Meta Business Suite → Events Manager → Data Set Settings → Generate Access Token.',
     ],

@@ -7,7 +7,7 @@
      * layout-provided `$seoMeta` (DbCms\Core\DTOs\Seo\SeoMeta) when present, with
      * fallbacks so a theme is never left without a complete head.
      *
-     * @see docs/18_THEME_MANIFEST_AND_BRAND_REFERENCE.md
+     * @see docs/EXTENSIONS.md
      */
     $seoMeta = $seoMeta ?? null;
 

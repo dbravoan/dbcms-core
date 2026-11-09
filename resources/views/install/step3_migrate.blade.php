@@ -83,31 +83,30 @@
 
     <!-- Data Seeding Selector -->
     <div class="space-y-3" x-show="!migrated">
-        <label class="block text-xs font-mono font-bold text-gray-400 uppercase">Selecciona el tipo de instalación inicial:</label>
+        <span class="block text-xs font-mono font-bold text-gray-400 uppercase">Tipo de instalación inicial:</span>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <!-- Option 1: Full Demo -->
-            <div @click="withDemo = true"
+            @if ($demoAvailable)
+            <label
                  :class="withDemo ? 'border-[#00FF99] bg-[#00FF99]/5' : 'border-gray-800 bg-[#121212]'"
                  class="p-4 rounded-xl border cursor-pointer transition-all space-y-2">
                 <div class="flex items-center justify-between">
                     <span class="font-mono text-xs font-bold text-white flex items-center gap-2">
-                        <span :class="withDemo ? 'text-[#00FF99]' : 'text-gray-500'">●</span>
-                        <span>Instalación Completa con Datos Demo</span>
+                        <input type="radio" name="installation_type" value="demo" :checked="withDemo" @change="withDemo = true">
+                        <span>Instalación con datos de demostración</span>
                     </span>
-                    <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-[#00FF99]/10 text-[#00FF99] font-bold">Recomendado</span>
                 </div>
                 <p class="text-[11px] text-gray-400 leading-relaxed font-mono">
-                    Puebla el sitio con 3 mercados (España, EE. UU., México), 3 idiomas, artículos técnicos redactados con estilo periodístico natural, catálogo de productos multidivisa, galerías y tema visual activo.
+                    Añade el contenido de demostración proporcionado por este proyecto.
                 </p>
-            </div>
+            </label>
+            @endif
 
-            <!-- Option 2: Clean Base -->
-            <div @click="withDemo = false"
+            <label
                  :class="!withDemo ? 'border-[#00FF99] bg-[#00FF99]/5' : 'border-gray-800 bg-[#121212]'"
                  class="p-4 rounded-xl border cursor-pointer transition-all space-y-2">
                 <div class="flex items-center justify-between">
                     <span class="font-mono text-xs font-bold text-white flex items-center gap-2">
-                        <span :class="!withDemo ? 'text-[#00FF99]' : 'text-gray-500'">●</span>
+                        <input type="radio" name="installation_type" value="clean" :checked="!withDemo" @change="withDemo = false">
                         <span>Instalación Limpia (Solo Estructura)</span>
                     </span>
                     <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-gray-800 text-gray-400">Minimalista</span>
@@ -115,7 +114,7 @@
                 <p class="text-[11px] text-gray-400 leading-relaxed font-mono">
                     Genera únicamente las tablas vacías y los roles esenciales de administración. Ideal para proyectos en los que empezarás a crear todo el contenido desde cero.
                 </p>
-            </div>
+            </label>
         </div>
     </div>
 

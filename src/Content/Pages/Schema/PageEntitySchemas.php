@@ -6,6 +6,7 @@ namespace DbCms\Core\Content\Pages\Schema;
 
 use DbCms\Core\Content\EntitySchema;
 use DbCms\Core\Content\Pages\Models\Page;
+use DbCms\Core\Content\Pages\Services\PageEditorialPreview;
 use DbCms\Core\Content\Pages\Services\PageMutationHandler;
 use DbCms\Core\Content\PublicContentDefinition;
 
@@ -31,6 +32,7 @@ final class PageEntitySchemas
             model: Page::class,
             sectionable: true,
             mutationHandler: PageMutationHandler::class,
+            previewHandler: PageEditorialPreview::class,
             description: 'Página con bloques o una vista Blade registrada, con metadatos SEO. Las vistas Blade conservan los bloques sin ejecutarlos ni permitir su edición.',
             permission: 'manage:pages',
             urlPrefix: '',

@@ -25,7 +25,13 @@ final class ModuleSettingsAdministrationService implements ModuleSettingsAdminis
         $customView = $identifier.'::admin.settings';
         $view = view()->exists($customView) ? $customView : 'admin.modules.settings';
 
-        return new ModuleSettingsViewDTO($view, array_merge(['module' => $module, 'schema' => $this->settings->getSchema($identifier), 'settings' => $this->settings->getAll($identifier), 'configured' => $this->settings->isConfigured($identifier)], $this->extensions->view($identifier)));
+        return new ModuleSettingsViewDTO($view, array_merge([
+            'module' => $module,
+            'schema' => $this->settings->getSchema($identifier),
+            'settings' => $this->settings->getAll($identifier),
+            'configured' => $this->settings->isConfigured($identifier),
+            'inactive' => ! $module->is_active,
+        ], $this->extensions->view($identifier)));
     }
 
     public function update(string $identifier, ModuleSettingsUpdateDTO $settings): string
@@ -71,9 +77,10 @@ final class ModuleSettingsAdministrationService implements ModuleSettingsAdminis
 
     private function available(string $identifier): CmsModule
     {
-        $module = CmsModule::where('identifier', $identifier)->where('is_active', true)->where('is_installed', true)->first();
+        // Settings are administration of an installed package; runtime stays behind module.enabled.
+        $module = CmsModule::where('identifier', $identifier)->where('is_installed', true)->first();
         if ($module === null || ! $this->modules->isModuleDiscovered($identifier)) {
-            abort(404, "Módulo '{$identifier}' desactivado o no encontrado.");
+            abort(404, "Módulo '{$identifier}' no instalado o no encontrado.");
         }
 
         return $module;

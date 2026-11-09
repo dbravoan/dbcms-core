@@ -9,10 +9,9 @@ use DbCms\Core\Contracts\Services\InstallationEnvironmentServiceInterface;
 use DbCms\Core\Contracts\Services\InstallationProvisioningServiceInterface;
 use DbCms\Core\Database\Seeders\CmsFoundationSeeder;
 use DbCms\Core\DTOs\Install\InstallationResultDTO;
-use DbCms\Core\Models\Role;
 use DbCms\Core\Modules\ModuleManager;
+use DbCms\Core\Services\Security\AccessProvisioner;
 use DbCms\Core\Services\Security\PassportKeyPermissionService;
-use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
@@ -22,15 +21,21 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 final class InstallationProvisioningService implements InstallationProvisioningServiceInterface
 {
-    public function __construct(private readonly PassportKeyPermissionService $keys, private readonly ClientRepository $clients, private readonly InstallationEnvironmentServiceInterface $environment, private readonly ModuleManager $modules) {}
+    public function __construct(
+        private readonly PassportKeyPermissionService $keys,
+        private readonly ClientRepository $clients,
+        private readonly InstallationEnvironmentServiceInterface $environment,
+        private readonly ModuleManager $modules,
+        private readonly AccessProvisioner $access,
+    ) {}
 
     public function provision(bool $withDemo = false, ?OutputInterface $output = null): InstallationResultDTO
     {
         $logs = [];
         $seeder = CmsFoundationSeeder::class;
         if ($withDemo) {
-            $configured = config('cms.demo_seeder');
-            if (! is_string($configured) || ! is_subclass_of($configured, Seeder::class)) {
+            $configured = ConfiguredDemoSeeder::resolve();
+            if ($configured === null) {
                 return new InstallationResultDTO(false, 'Este proyecto no incluye el contenido de demostración. Instala sin --with-demo.', $logs);
             }
             $seeder = $configured;
@@ -49,7 +54,8 @@ final class InstallationProvisioningService implements InstallationProvisioningS
             $this->infrastructure($output);
             $logs[] = 'Claves OAuth2, cliente de acceso personal y almacenamiento preparados.';
             $this->command('db:seed', ['--class' => $seeder, '--force' => true], $output);
-            DB::transaction(fn () => Role::firstOrCreate(['slug' => 'admin'], ['name' => 'Administrador', 'description' => 'Acceso administrativo total']));
+            $access = $this->access->provision();
+            $logs[] = "Catálogo de permisos sincronizado: {$access['permissions']} permisos y {$access['roles']} roles base.";
             $logs[] = $withDemo ? 'Datos de demostración solicitados inicializados.' : 'Estructura base inicializada sin contenido de demostración.';
             $this->environment->write([
                 'SESSION_DRIVER' => 'database',

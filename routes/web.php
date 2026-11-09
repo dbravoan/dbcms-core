@@ -31,6 +31,7 @@ use DbCms\Core\Http\Controllers\Admin\Markets\MarketsGetController;
 use DbCms\Core\Http\Controllers\Admin\Markets\MarketTogglePostController;
 use DbCms\Core\Http\Controllers\Admin\Media\MediaDeleteController;
 use DbCms\Core\Http\Controllers\Admin\Media\MediaGetController;
+use DbCms\Core\Http\Controllers\Admin\Media\MediaImportPostController;
 use DbCms\Core\Http\Controllers\Admin\Media\MediaPutController;
 use DbCms\Core\Http\Controllers\Admin\Media\MediaUploadPostController;
 use DbCms\Core\Http\Controllers\Admin\Menus\MenuDeleteController;
@@ -62,6 +63,8 @@ use DbCms\Core\Http\Controllers\Admin\Seo\FiltersGetController;
 use DbCms\Core\Http\Controllers\Admin\Seo\SeoAuditGetController;
 use DbCms\Core\Http\Controllers\Admin\SetLocaleGetController;
 use DbCms\Core\Http\Controllers\Admin\SetLocalePostController;
+use DbCms\Core\Http\Controllers\Admin\Settings\PrivacyGetController;
+use DbCms\Core\Http\Controllers\Admin\Settings\PrivacyPutController;
 use DbCms\Core\Http\Controllers\Admin\Settings\SettingsGetController;
 use DbCms\Core\Http\Controllers\Admin\Settings\SettingsPutController;
 use DbCms\Core\Http\Controllers\Admin\Themes\ThemeActivatePostController;
@@ -171,7 +174,7 @@ Route::middleware(['web', ResolveMarketAndLocaleMiddleware::class, EnsureSeoMeta
 // Visitor Geo Preference Cookie Handler
 Route::post('/geo/set-preference', GeoPreferencePostController::class)->name('geo.set-preference');
 
-// Backoffice theme assets (served from resources/views/themes/admin/{theme}/assets)
+// Backoffice theme assets (served from the installed theme package's assets directory)
 Route::get('/theme-assets/{theme}/{path}', ThemeAssetGetController::class)
     ->where('path', '.*')
     ->name('theme.asset');
@@ -247,6 +250,8 @@ Route::prefix($adminPath)->name('admin.')->middleware([SetBackofficeLocale::clas
             // General Site & Company Settings
             Route::get('/settings', SettingsGetController::class)->name('settings.index');
             Route::put('/settings', SettingsPutController::class)->name('settings.update');
+            Route::get('/settings/privacy', PrivacyGetController::class)->name('settings.privacy');
+            Route::put('/settings/privacy', PrivacyPutController::class)->name('settings.privacy.update');
         });
 
         // External Connections (AWS S3 / OVH / Cloudflare R2 document storage)
@@ -264,8 +269,10 @@ Route::prefix($adminPath)->name('admin.')->middleware([SetBackofficeLocale::clas
             Route::post('/users', UserPostController::class)->name('users.store');
             Route::post('/users/{user}/role', UserRolePostController::class)->name('users.update-role');
             Route::delete('/users/{user}', UserDeleteController::class)->name('users.destroy');
+        });
 
-            // API & MCP Tokens / M2M Clients Management
+        // API & MCP Tokens / M2M Clients Management
+        Route::middleware([CheckPermission::class.':manage:tokens'])->group(function (): void {
             Route::get('/tokens', TokensGetController::class)->name('tokens.index');
             Route::get('/tokens/create', TokenCreateGetController::class)->name('tokens.create');
             Route::post('/tokens/personal', PersonalTokenPostController::class)->name('tokens.store-personal');
@@ -298,6 +305,7 @@ Route::prefix($adminPath)->name('admin.')->middleware([SetBackofficeLocale::clas
         // Media Manager API for WYSIWYG & Filemanager Modal
         Route::get('/media', MediaGetController::class)->middleware(CheckPermission::class.':manage:media')->name('media.index');
         Route::middleware([CheckPermission::class.':manage:media'])->group(function (): void {
+            Route::post('/media/import', MediaImportPostController::class)->name('media.import');
             Route::post('/media/upload', MediaUploadPostController::class)->name('media.upload');
             Route::put('/media/{id}', MediaPutController::class)->name('media.update');
             Route::delete('/media/{filename}', MediaDeleteController::class)->name('media.destroy')->where('filename', '.*');

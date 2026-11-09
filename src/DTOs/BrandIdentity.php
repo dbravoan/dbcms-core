@@ -13,7 +13,7 @@ use DbCms\Core\Services\Cms\BrandService;
  * come from the active theme's `theme.json` (`brand` block), with optional
  * environment overrides resolved by {@see BrandService}.
  *
- * @see docs/18_THEME_MANIFEST_AND_BRAND_REFERENCE.md
+ * @see docs/EXTENSIONS.md
  */
 readonly class BrandIdentity extends BaseDTO
 {

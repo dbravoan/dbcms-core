@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace DbCms\Core\Console\Commands;
 
-use DbCms\Core\Contracts\Services\InstallationEnvironmentServiceInterface;
 use DbCms\Core\DTOs\Install\LegalCompanyDTO;
-use DbCms\Core\Services\Privacy\LegalPageService;
+use DbCms\Core\Services\Privacy\PrivacyConfigurationService;
 use Illuminate\Console\Command;
 use Illuminate\Validation\ValidationException;
 
@@ -16,7 +15,7 @@ final class PrivacyConfigureCommand extends Command
 
     protected $description = 'Validate and update factual legal information and provision missing legal pages';
 
-    public function handle(LegalPageService $legal, InstallationEnvironmentServiceInterface $environment): int
+    public function handle(PrivacyConfigurationService $configuration): int
     {
         $path = (string) $this->argument('file');
         if (! is_file($path) || ! is_readable($path)) {
@@ -40,13 +39,7 @@ final class PrivacyConfigureCommand extends Command
                     throw new \InvalidArgumentException('The adoption JSON must map legal roles to existing Page IDs.');
                 }
             }
-            $legal->provision(LegalCompanyDTO::fromArray($values), $adoptions);
-            $days = (int) $legal->requireProcessing('core')['retention_days'];
-            $environment->write(['LOG_CHANNEL' => 'daily', 'LOG_DAILY_DAYS' => (string) $days]);
-            if (app()->configurationIsCached() && $this->callSilent('config:clear') !== self::SUCCESS) {
-                throw new \RuntimeException('Legal information was saved, but the configuration cache could not be cleared. Retry before reopening traffic.');
-            }
-            config(['logging.default' => 'daily', 'logging.channels.daily.days' => $days]);
+            $configuration->configure(LegalCompanyDTO::fromArray($values), adoptions: $adoptions);
         } catch (\JsonException|\InvalidArgumentException|\DomainException|\RuntimeException|ValidationException $error) {
             $this->error($error->getMessage());
 

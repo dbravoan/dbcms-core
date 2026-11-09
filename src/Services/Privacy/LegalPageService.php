@@ -22,7 +22,7 @@ use Illuminate\Validation\ValidationException;
 
 final class LegalPageService
 {
-    public const LOCALES = ['es', 'en', 'ca'];
+    public const LOCALES = ['es', 'en', 'ca', 'fr', 'it', 'pt', 'de', 'ar', 'zh-CN'];
 
     public function __construct(private readonly GeneralSettingsServiceInterface $settings) {}
 

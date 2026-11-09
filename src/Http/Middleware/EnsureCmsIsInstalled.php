@@ -13,7 +13,7 @@ class EnsureCmsIsInstalled
     public function handle(Request $request, Closure $next): Response
     {
         // Skip for installer routes and static assets
-        if ($request->is('install*') || $request->is('_debugbar*') || $request->is('up')) {
+        if ($request->is('install*') || $request->is('_debugbar*') || $request->is('up') || $request->routeIs('theme.asset')) {
             return $next($request);
         }
 

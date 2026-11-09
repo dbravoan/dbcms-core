@@ -120,7 +120,12 @@ final class ExternalContentPolicy implements ContentSecurityPolicyContributorInt
     /** @return list<string> */
     public function connectOrigins(): array
     {
-        // CSP permits declared receivers; the consent client controls insertion.
+        // Optional receivers are only allowed while a current external-content
+        // consent receipt exists. The consent client still controls insertion.
+        if (! app(CookieConsentService::class)->hasConsent('external')) {
+            return [];
+        }
+
         return array_values(array_unique(array_merge([], ...array_column($this->services(), 'origins'))));
     }
 

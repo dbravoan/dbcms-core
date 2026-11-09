@@ -398,7 +398,7 @@ class MediaManagerService
      *     is_video: bool
      * }
      */
-    public function importFromUrl(string $url, string $title, ?string $altText = null): array
+    public function importFromUrl(string $url, string $title, ?string $altText = null, bool $imagesOnly = false): array
     {
         if (str_starts_with($url, 'data:')) {
             $parts = explode(',', $url, 2);
@@ -413,7 +413,7 @@ class MediaManagerService
         }
 
         $destination = app(RemoteMediaUrlPolicy::class)->resolve($url);
-        $maxBytes = 100 * 1024 * 1024;
+        $maxBytes = self::MAX_UPLOAD_KILOBYTES * 1024;
         $temporary = tempnam(sys_get_temp_dir(), 'dbcms-media-');
         if ($temporary === false) {
             throw new \RuntimeException('Cannot allocate media download.');
@@ -427,7 +427,7 @@ class MediaManagerService
                 'curl' => [CURLOPT_RESOLVE => $pins],
                 'progress' => static function (float $total, float $downloaded) use ($maxBytes): void {
                     if ($total > $maxBytes || $downloaded > $maxBytes) {
-                        throw new \InvalidArgumentException('Media exceeds the 100 MB limit.');
+                        throw new \InvalidArgumentException('Media exceeds the 50 MB limit.');
                     }
                 },
             ])->get($url);
@@ -436,6 +436,9 @@ class MediaManagerService
             }
             $binary = filesize($temporary) > 0 ? (string) file_get_contents($temporary) : $response->body();
             $contentType = strtolower(trim(explode(';', (string) $response->header('Content-Type'))[0]));
+            if ($imagesOnly && ! str_starts_with($contentType, 'image/')) {
+                throw new \InvalidArgumentException('The URL must return an image.');
+            }
             $ext = match ($contentType) {
                 'image/webp' => 'webp', 'image/png' => 'png', 'image/jpeg' => 'jpg',
                 'image/gif' => 'gif', 'image/svg+xml' => 'svg', 'video/mp4' => 'mp4', 'video/webm' => 'webm',
@@ -470,115 +473,28 @@ class MediaManagerService
      */
     public function saveFromBinary(string $binaryData, string $extension, string $title, ?string $altText = null): array
     {
-        $uuid = (string) Str::uuid();
         $ext = strtolower($extension);
-        $allowed = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg', 'mp4', 'webm', 'mov'];
-        if (! in_array($ext, $allowed, true) || $binaryData === '' || strlen($binaryData) > 100 * 1024 * 1024) {
-            throw new \InvalidArgumentException('Invalid media content or extension.');
+        if (! in_array($ext, ['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg', 'mp4', 'webm', 'mov'], true)) {
+            throw new \InvalidArgumentException('Invalid media extension.');
         }
-        if ($ext === 'svg') {
-            $binaryData = $this->svgSanitizer->sanitize($binaryData);
-            if (! str_contains($binaryData, '<svg')) {
-                throw new \InvalidArgumentException('Invalid SVG image.');
-            }
-        } else {
-            $actualMime = (new \finfo(FILEINFO_MIME_TYPE))->buffer($binaryData);
-            $expected = ['jpg' => 'image/jpeg', 'jpeg' => 'image/jpeg', 'png' => 'image/png', 'webp' => 'image/webp', 'gif' => 'image/gif', 'mp4' => 'video/mp4', 'webm' => 'video/webm', 'mov' => 'video/quicktime'];
-            if ($actualMime !== $expected[$ext]) {
-                throw new \InvalidArgumentException('Media content does not match its extension.');
-            }
+        $temporary = tempnam(sys_get_temp_dir(), 'cms-media-');
+        if ($temporary === false) {
+            throw new \RuntimeException('Cannot allocate media upload.');
         }
-        $filename = "{$uuid}.{$ext}";
-        $isImage = in_array($ext, ['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg'], true);
-        $isVideo = in_array($ext, ['mp4', 'webm', 'mov'], true);
-        $dir = $this->getUploadDir();
-
-        if (! File::exists($dir)) {
-            File::makeDirectory($dir, 0755, true);
-        }
-
-        $fullPath = "{$dir}/{$filename}";
-        File::put($fullPath, $binaryData);
-        $url = $this->urlResolver->localUrl($filename);
-
-        // Attempt WebP conversion for jpg/png
-        if ($isImage && in_array($ext, ['jpg', 'jpeg', 'png'], true) && function_exists('imagewebp')) {
-            $webpFilename = "{$uuid}.webp";
-            $webpPath = "{$dir}/{$webpFilename}";
-
-            try {
-                $img = in_array($ext, ['jpg', 'jpeg'], true)
-                    ? @imagecreatefromjpeg($fullPath)
-                    : @imagecreatefrompng($fullPath);
-
-                if ($img instanceof \GdImage) {
-                    $converted = @imagewebp($img, $webpPath, 85);
-                    @imagedestroy($img);
-                    if ($converted && is_file($webpPath) && filesize($webpPath) > 0) {
-                        File::delete($fullPath);
-                        $filename = $webpFilename;
-                        $url = $this->urlResolver->localUrl($webpFilename);
-                        $fullPath = $webpPath;
-                        $ext = 'webp';
-                    } else {
-                        File::delete($webpPath);
-                    }
-                }
-            } catch (\Throwable) {
-                // Keep original
+        try {
+            file_put_contents($temporary, $binaryData);
+            $uploaded = $this->upload(new UploadedFile($temporary, 'media.'.$ext, null, null, true));
+        } finally {
+            if (is_file($temporary)) {
+                @unlink($temporary);
             }
         }
-
-        $dims = $isImage ? @getimagesize($fullPath) : false;
-        $width = is_array($dims) ? (int) $dims[0] : null;
-        $height = is_array($dims) ? (int) $dims[1] : null;
-        $sizeBytes = File::exists($fullPath) ? (int) File::size($fullPath) : strlen($binaryData);
-        $sizeFormatted = $sizeBytes > 1048576 ? round($sizeBytes / 1048576, 1).' MB' : round($sizeBytes / 1024, 1).' KB';
-        $mime = (string) (File::mimeType($fullPath) ?: ($isVideo ? 'video/mp4' : 'image/webp'));
-        $originalName = "{$title}.{$ext}";
-        $alt = $altText ?: $title;
-
-        // If external storage is active, upload there as well
-        if ($this->externalStorage->isConfigured()) {
-            $this->externalStorage->registerDisk();
-            Storage::disk(ExternalStorageService::DISK)->put($filename, (string) File::get($fullPath));
-            $url = $this->externalStorage->url($filename);
-        }
-
-        $recordId = $filename;
+        $metadata = ['title' => $title, 'alt_text' => $altText ?? $title];
         if (Schema::hasTable('media_files')) {
-            $record = MediaFile::create([
-                'uuid' => $uuid,
-                'filename' => $filename,
-                'original_name' => $originalName,
-                'title' => $title,
-                'alt_text' => $alt,
-                'caption' => null,
-                'mime_type' => $mime,
-                'size_bytes' => $sizeBytes,
-                'width' => $width,
-                'height' => $height,
-                'url' => $url,
-            ]);
-            $recordId = $record->id;
+            $this->updateMetadata($uploaded['id'], $metadata);
         }
 
-        return [
-            'id' => $recordId,
-            'uuid' => $uuid,
-            'url' => $url,
-            'filename' => $filename,
-            'original_name' => $originalName,
-            'title' => $title,
-            'alt_text' => $alt,
-            'caption' => null,
-            'mime_type' => $mime,
-            'size_formatted' => $sizeFormatted,
-            'width' => $width,
-            'height' => $height,
-            'is_image' => $isImage,
-            'is_video' => $isVideo,
-        ];
+        return array_replace($uploaded, $metadata, ['is_video' => in_array($ext, ['mp4', 'webm', 'mov'], true)]);
     }
 
     /**

@@ -57,6 +57,7 @@ final readonly class EntitySchema
         public bool $uniqueSlugs = true,
         public ?PublicContentDefinition $publicContent = null,
         public ?string $adminFormView = null,
+        public ?string $previewHandler = null,
     ) {}
 
     /**

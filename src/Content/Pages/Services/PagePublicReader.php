@@ -6,6 +6,7 @@ namespace DbCms\Core\Content\Pages\Services;
 
 use DbCms\Core\Content\Pages\Contracts\PageDomainServiceInterface;
 use DbCms\Core\Content\Pages\Contracts\PagePublicReaderInterface;
+use DbCms\Core\Content\Pages\Models\Page;
 use DbCms\Core\Content\Pages\Models\PageTranslation;
 use DbCms\Core\Contracts\Services\LocalizationServiceInterface;
 use DbCms\Core\Contracts\Services\PublicContentDiscoveryInterface;
@@ -95,6 +96,7 @@ final class PagePublicReader implements PagePublicReaderInterface
         }
 
         $viewName = $bladeView ?? $this->views->resolve('pages.show', 'pages::show');
+        $layout = $this->layoutFor($page);
 
         // Unified SEO/GEO metadata (canonical, OG, Twitter, hreflang, JSON-LD).
         /** @var SeoMetaService $seoMetaService */
@@ -121,7 +123,23 @@ final class PagePublicReader implements PagePublicReaderInterface
             'breadcrumbs' => $breadcrumbs,
             'currentMarket' => $market,
             'currentLocale' => $locale,
-            'layout' => $this->views->layout(),
+            'layout' => $layout,
         ]);
+    }
+
+    private function layoutFor(Page $page): string
+    {
+        $requested = trim((string) $page->layout);
+
+        if ($requested !== '') {
+            try {
+                return $this->views->layout($requested);
+            } catch (\DomainException) {
+                // A page imported with an unknown layout must still render with
+                // the theme's default layout instead of failing the request.
+            }
+        }
+
+        return $this->views->layout();
     }
 }

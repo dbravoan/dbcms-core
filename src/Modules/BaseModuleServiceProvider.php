@@ -8,11 +8,13 @@ use DbCms\Core\Contracts\Services\AdminThemeServiceInterface;
 use DbCms\Core\Contracts\Services\ModuleSettingsServiceInterface;
 use DbCms\Core\Http\Middleware\EnsureAdminAuthenticated;
 use DbCms\Core\Http\Middleware\SetBackofficeLocale;
+use DbCms\Core\Models\CmsModule;
 use DbCms\Core\Models\User;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
+use Throwable;
 
 abstract class BaseModuleServiceProvider extends ServiceProvider implements ModuleInterface
 {
@@ -126,7 +128,23 @@ abstract class BaseModuleServiceProvider extends ServiceProvider implements Modu
             }
         }
         if ($this->isPageable()) {
-            Route::middleware("module.enabled:{$this->identifier}")->group(fn () => $this->registerPageableRoutes());
+            // Do not register routes for a disabled module: a 404 route would
+            // still win the matcher and hide a page with the same slug.
+            $configured = in_array($this->identifier, (array) Config::get('cms.modules', []), true);
+            $enabled = $configured;
+            try {
+                $manager = $this->app->make(ModuleManager::class);
+                $record = CmsModule::query()->where('identifier', $this->identifier)->first();
+                if ($record !== null) {
+                    $enabled = $manager->isModuleEnabled($this->identifier);
+                }
+            } catch (Throwable) {
+                // Installer / pre-migration boot: keep the configured selection.
+            }
+
+            if ($enabled) {
+                Route::middleware("module.enabled:{$this->identifier}")->group(fn () => $this->registerPageableRoutes());
+            }
         }
 
         $this->registerAdminRoutes();

@@ -1,23 +1,88 @@
-# dbCMS core
+# dbravoan/dbcms-core 1.0.0
 
-Core provides the web installer, identity/permissions, languages and markets,
-media, pages, menus, publication, sections, theme resolution, technical SEO and
-privacy. Laravel project code stays under `App`; core classes use `DbCms\Core`.
+## Qué hace
 
-Open `/install` on a fresh deployment. Supply actual database/controller details
-and create the administrator. The installer starts an empty site. Configure its
-languages and markets before creating content; translating an entity does not
-publish it or assign it to every market.
+El núcleo aporta instalador web, identidad/permisos, idiomas y mercados, medios,
+páginas, menús, publicación, secciones, temas, SEO técnico y privacidad. El código
+propio de Laravel permanece en `App`; el núcleo utiliza `DbCms\Core`.
 
-In the backoffice, create a Page, select its language/markets, and choose sections
-or a registered Blade template. Save the draft, then publish through the applicable
-review flow. Verify the anonymous public URL in the intended language and market.
-A disabled block owner hides execution but preserves stored instances.
+En una instalación nueva abre `/install`, indica datos reales de base de datos y
+responsable/empresa y crea el administrador. El sitio comienza vacío. Configura
+idiomas y mercados antes de crear contenido: traducir no publica ni asigna a todos
+los mercados.
 
-Use the media library and menu manager under their normal permissions. The legal
-footer and consent UI use the same configured company/processing data; review
-them whenever integrations change. Full custom layouts must include the shared
-privacy UI.
+Crea una Page, selecciona idioma/mercados y secciones o una plantilla Blade
+registrada. Guarda el borrador y publica mediante el flujo de revisión aplicable.
+Verifica la URL pública anónima en su contexto. Desactivar el propietario de un
+bloque impide su ejecución, conservando sus instancias.
 
-See [architecture](https://github.com/dbravoan/dbcms/blob/main/specs/CORE_AND_EXTENSIONS.md)
-and [extensions/Blade](https://github.com/dbravoan/dbcms/blob/main/docs/EXTENSIONS.md) for the integration contract.
+Medios y menús conservan sus permisos. El pie legal y consentimiento usan la
+misma información configurada de empresa/tratamientos; revísala al cambiar
+integraciones. Los layouts completos personalizados incluyen la UI de privacidad.
+
+## Requisitos y dependencias
+
+Según `packages/core/composer.json` (Laravel y ecosistema PHP del monorepo).
+Identificador de producto: núcleo `dbravoan/dbcms-core`.
+
+## Instalación y activación
+
+El núcleo se instala con Composer en el proyecto/workbench. Completa `/install`
+o `cms:install`. No es un módulo activable del catálogo de módulos.
+
+## Configuración
+
+Claves de entorno / `config/cms.php` por nombre (sin valores), entre otras:
+
+- `CMS_BRAND` → `cms.admin_theme`
+- `CMS_THEME` → `cms.theme`
+- ajuste persistido `cms.active_theme`
+- `APP_NAME` → `cms.name`
+- `ADMIN_PATH` → `cms.admin_path`
+- `CMS_INSTALLATION_ID` → `cms.installation_id`
+- `CMS_SEED_DEMO`, `CMS_DEMO_SEEDER`
+- `CMS_PAGE_CACHE`, `CMS_PAGE_CACHE_TTL`
+- `CMS_QUICK_LOGIN`
+- `CMS_ADMINER_URL`
+- `CMS_PUBLIC_WRITES_PER_MINUTE`
+- `CMS_ADMIN_LOCALES`
+- `CMS_LOCK_ROLES_IN_PRODUCTION`
+- `CMS_MODULES`
+- Fallbacks de integraciones: `GA4_MEASUREMENT_ID`, `ADSENSE_CLIENT_ID`, `META_PIXEL_ID`, `META_CAPI_TOKEN`, `CMS_MAINTENANCE_MODE`
+
+## Rutas
+
+Instalador `/install`, panel bajo `ADMIN_PATH`, rutas públicas de páginas/medios
+del núcleo. El detalle vive en los ServiceProviders y `routes` del paquete.
+
+## Comandos Artisan
+
+Definidos en `packages/core/src/Console/Commands/`:
+
+- `cms:install`
+- `cms:access:sync` — crea/actualiza el catálogo de permisos y los roles base
+- `cms:issue-mcp-token` — usado por el módulo MCP; **pertenece al núcleo**
+- `cms:create-m2m-client`
+- `cms:cache:purge`
+- `cms:maintenance`
+- `executions:privacy` — usado con Orchestration; **pertenece al núcleo**
+- `accounts:privacy`
+- `privacy:configure`
+- `privacy:prune`
+- `media:migrate-to-external`
+- `search:reindex`
+
+## Permisos
+
+Identidad y permisos del núcleo (`access:admin`, `manage:tokens`, gestión de páginas/medios/menús/SEO/módulos, etc.). La instalación limpia crea el catálogo y los roles base mediante `AccessProvisioner`; `cms:access:sync` los reconcilia en instalaciones existentes. Los módulos pueden declarar permisos en su manifiesto y se incorporan al catálogo.
+
+## Privacidad y datos
+
+Empresa y tratamientos `legal.processing`, pie legal, consentimiento y comandos
+`privacy:*` / `accounts:privacy` / `executions:privacy`. Consulta el contrato de extensiones.
+
+## Enlaces
+
+- [Extensiones](../../docs/EXTENSIONS.md)
+- [Núcleo y extensiones](../../specs/CORE_AND_EXTENSIONS.md)
+- [README del monorepo](../../README.md)

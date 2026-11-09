@@ -11,7 +11,7 @@ namespace DbCms\Core\Services\Security;
  * process umask (commonly 0644 or, inside Sail, 0666/0777 after a broad
  * `chmod -R` over the storage tree). The private key is a signing secret and
  * must never be group- or world-readable, so its permissions are (re)applied
- * after generation and after any deployment-wide permission sweep.
+ * after generation and after any application-wide permission changes.
  */
 final class PassportKeyPermissionService
 {

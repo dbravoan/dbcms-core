@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace DbCms\Core\Services\Media;
 
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
 final class MediaUploadService
@@ -59,6 +60,30 @@ final class MediaUploadService
             if (is_file($temporary)) {
                 @unlink($temporary);
             }
+        }
+
+        return ['uploaded' => true, 'media' => $uploaded];
+    }
+
+    /** @param array<string,mixed> $args
+     * @return array<string,mixed>
+     */
+    public function importImage(array $args): array
+    {
+        $validated = Validator::make($args, [
+            'url' => ['required', 'url', 'max:2048', 'starts_with:http://,https://'],
+            'title' => ['nullable', 'string', 'max:255'],
+            'alt_text' => ['nullable', 'string', 'max:2000'],
+        ])->validate();
+        try {
+            $uploaded = $this->media->importFromUrl(
+                (string) $validated['url'],
+                (string) ($validated['title'] ?? 'Imagen importada'),
+                isset($validated['alt_text']) ? (string) $validated['alt_text'] : null,
+                true,
+            );
+        } catch (\InvalidArgumentException|\RuntimeException $exception) {
+            throw ValidationException::withMessages(['url' => $exception->getMessage()]);
         }
 
         return ['uploaded' => true, 'media' => $uploaded];

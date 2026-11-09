@@ -7,17 +7,15 @@ namespace DbCms\Core\Services\Cms;
 use DbCms\Core\Contracts\Services\AdminThemeServiceInterface;
 use DbCms\Core\Contracts\Services\BrandServiceInterface;
 use DbCms\Core\DTOs\BrandIdentity;
-use Illuminate\Support\Facades\Log;
 
 /**
  * Resolves the brand identity for backoffice themes.
  *
  * Resolution order per value: environment override → theme manifest
- * (`theme.json` → `brand`) → generic default. The active theme is validated and
- * falls back to `dbcms` with a warning when `CMS_BRAND` points to a theme that
- * does not exist on disk.
+ * (`theme.json` → `brand`) → generic default. A configured theme that is not
+ * installed fails explicitly; there is no implicit fallback between themes.
  *
- * @see docs/18_THEME_MANIFEST_AND_BRAND_REFERENCE.md
+ * @see docs/EXTENSIONS.md
  */
 final class BrandService implements BrandServiceInterface
 {
@@ -48,15 +46,11 @@ final class BrandService implements BrandServiceInterface
             $this->cache = [];
         }
 
-        if ($requested !== '' && $this->themes->themeExists($requested)) {
-            return $requested;
+        if ($requested === '' || ! $this->themes->themeExists($requested)) {
+            throw new \DomainException("The selected admin theme [{$requested}] is not installed.");
         }
 
-        if ($requested !== '' && $requested !== 'dbcms') {
-            Log::warning("Backoffice theme [{$requested}] not found; falling back to [dbcms].");
-        }
-
-        return $this->themes->themeExists('dbcms') ? 'dbcms' : '';
+        return $requested;
     }
 
     public function current(): BrandIdentity

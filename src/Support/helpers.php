@@ -9,7 +9,10 @@ use DbCms\Core\Contracts\Services\ModuleSettingsServiceInterface;
 use DbCms\Core\DTOs\BrandIdentity;
 use DbCms\Core\Extensions\ComposerPackages;
 use DbCms\Core\Forms\FieldTypeRegistry;
+use DbCms\Core\Models\Market;
 use DbCms\Core\Services\Cms\ThemeManagerService;
+use DbCms\Core\Services\Content\PublicTranslation;
+use Illuminate\Database\Eloquent\Model;
 
 if (! function_exists('cms_asset_entries')) {
     /** @return list<string> Shared runtime plus the selected brand and public theme. */
@@ -58,7 +61,7 @@ if (! function_exists('brand')) {
      *
      * Single accessor for brand values — never hardcode a brand in views/config.
      *
-     * @see docs/18_THEME_MANIFEST_AND_BRAND_REFERENCE.md
+     * @see docs/EXTENSIONS.md
      */
     function brand(): BrandIdentity
     {
@@ -91,6 +94,30 @@ if (! function_exists('setting')) {
         }
 
         return $default;
+    }
+}
+
+if (! function_exists('public_translation')) {
+    /**
+     * Resolve the public translation for the active locale and market.
+     *
+     * Never falls back to another language: a missing translation returns null
+     * so the caller can render a 404 or hide the entity.
+     */
+    function public_translation(?Model $entity, ?string $locale = null, ?Market $market = null): ?Model
+    {
+        if ($entity === null) {
+            return null;
+        }
+
+        $locale ??= app()->getLocale();
+
+        if ($market === null && app()->bound('current.market')) {
+            $current = app('current.market');
+            $market = $current instanceof Market ? $current : null;
+        }
+
+        return PublicTranslation::resolve($entity, $locale, $market);
     }
 }
 

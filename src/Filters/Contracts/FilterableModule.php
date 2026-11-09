@@ -11,7 +11,7 @@ use DbCms\Core\Filters\FilterDimension;
  *
  * Any module that is paginable, searchable or filterable must implement this
  * contract so its filters become friendly, canonical, SEO-aware URLs (see
- * `docs/20_FRONT_FILTERING_AND_SEO_URLS.md`).
+ * `docs/EXTENSIONS.md`).
  */
 interface FilterableModule
 {

@@ -8,7 +8,7 @@ namespace DbCms\Core\Filters;
  * Parses a friendly (markerless) filter path into a {@see FilterSet}.
  *
  * Resolution order for a bare segment — deterministic and declared, never a
- * guess (see docs/20):
+ * guess (see docs/EXTENSIONS.md):
  *
  *   2. inline qualifiers            `etiqueta-laravel`, `3-habitaciones`
  *   3. reserved tokens              enum options / bool markers (`recientes`)

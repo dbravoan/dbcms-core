@@ -29,7 +29,7 @@ class ThemeManagerService
     /**
      * Clears cached view resolution when the active theme changes.
      *
-     * Settings persist panel activation independently of cached deployment config.
+     * Settings persist panel activation independently of cached application config.
      * Refresh them at request boundaries for long-lived application workers too.
      */
     public function syncActiveTheme(): void
@@ -103,7 +103,7 @@ class ThemeManagerService
     }
 
     /**
-     * Activate only installed themes, retaining deployment-owned configuration.
+     * Activate only installed themes, retaining project-owned configuration.
      */
     public function setActiveTheme(string $themeIdentifier): bool
     {

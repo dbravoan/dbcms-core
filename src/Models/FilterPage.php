@@ -7,6 +7,7 @@ namespace DbCms\Core\Models;
 use DbCms\Core\Contracts\Sectionable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 
 /**
  * Admin-curated content for a dynamic filter page.
@@ -27,6 +28,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string|null $heading
  * @property string|null $meta_description
  * @property bool $is_indexable
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
  */
 class FilterPage extends Model implements Sectionable
 {

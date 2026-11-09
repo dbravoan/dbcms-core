@@ -127,6 +127,9 @@ final class SiteSettingsService
 
         try {
             DB::transaction(function () use ($grouped): void {
+                if (isset($grouped['legal'])) {
+                    DB::table('settings')->where('key', 'legal.processing')->lockForUpdate()->first();
+                }
                 foreach ($grouped as $group => $settings) {
                     $this->settings->setMany($settings, $group);
                 }

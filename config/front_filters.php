@@ -18,7 +18,7 @@ declare(strict_types=1);
 |   /blog/tecnologia/ia-geo/laravel+geo/recientes
 |   /blog/desde-2026-01-01/hasta-2026-06-30
 |
-| Resolution order for a bare segment (deterministic, see docs/20):
+| Resolution order for a bare segment (deterministic, see docs/EXTENSIONS.md):
 |   1. reserved tokens (enum options / bool markers)   → e.g. `recientes`
 |   2. localized connectors + shapes (dates, ranges)   → e.g. `desde-…`, `entre-…`
 |   3. exact term vocabularies (`+` joins values)
@@ -31,7 +31,7 @@ declare(strict_types=1);
 return [
     /*
     |--------------------------------------------------------------------------
-    | SEO / GEO limits (see docs/20)
+    | SEO / GEO limits (see docs/EXTENSIONS.md)
     |--------------------------------------------------------------------------
     | Combinations that exceed these limits, or that return fewer than
     | `min_results`, are never indexed (they still render, with noindex).

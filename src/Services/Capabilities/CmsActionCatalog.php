@@ -266,6 +266,19 @@ final class CmsActionCatalog
     {
         return [
             new ActionTool(
+                toolName: 'cms_media_import',
+                toolDescription: 'Imports an image from a public URL into the configured media library, without publishing content.',
+                toolProperties: [
+                    'url' => ['type' => 'string', 'maxLength' => 2048],
+                    'title' => ['type' => 'string', 'maxLength' => 255],
+                    'alt_text' => ['type' => 'string', 'maxLength' => 2000],
+                ],
+                toolRequired: ['url'],
+                toolPermission: 'manage:media',
+                toolAbility: ActionTool::ABILITY_WRITE,
+                handler: static fn (array $args): array => $service->importImage($args),
+            ),
+            new ActionTool(
                 toolName: 'cms_media_upload',
                 toolDescription: 'MCP: uploads a file to the media library from base64 content, honouring the same type/size rules as the backoffice',
                 toolProperties: [

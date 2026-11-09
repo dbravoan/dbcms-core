@@ -12,6 +12,18 @@ final class PublicTranslation
 {
     public static function resolve(Model $entity, string $locale, ?Market $market): ?Model
     {
+        return self::resolveForMarketId($entity, $locale, $market?->getKey());
+    }
+
+    /**
+     * Resolve a translation without loading a Market model.
+     *
+     * Only the requested locale is considered: a regional row may inherit
+     * blank fields from the global row of the same language, never from another
+     * language or market.
+     */
+    public static function resolveForMarketId(Model $entity, string $locale, ?int $marketId): ?Model
+    {
         $entity->loadMissing('translations');
         $global = null;
         $regional = null;
@@ -19,10 +31,10 @@ final class PublicTranslation
             if (! $translation instanceof Model || $translation->getAttribute('locale') !== $locale) {
                 continue;
             }
-            $marketId = $translation->getAttributes()['market_id'] ?? null;
-            if ($marketId === null) {
+            $translationMarketId = $translation->getAttributes()['market_id'] ?? null;
+            if ($translationMarketId === null) {
                 $global ??= $translation;
-            } elseif ($market !== null && (int) $marketId === (int) $market->getKey()) {
+            } elseif ($marketId !== null && (int) $translationMarketId === $marketId) {
                 $regional ??= $translation;
             }
         }

@@ -15,6 +15,8 @@
 
     <x-admin.form-header :title="__('admin.settings.title')" :description="__('admin.settings.subtitle')" :back-route="route('admin.dashboard')" back-label="Volver al panel" />
 
+    <a href="{{ route('admin.settings.privacy') }}" class="inline-block text-[color:var(--admin-accent)] underline">Configurar tratamientos de privacidad</a>
+
     <!-- Navigation Tabs -->
     <div class="flex items-center gap-2 border-b border-[color:var(--admin-border)] pb-2 overflow-x-auto">
         <button type="button" @click="activeTab = 'general'"

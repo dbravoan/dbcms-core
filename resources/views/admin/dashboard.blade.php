@@ -35,15 +35,15 @@
                     <span>&gt;_help</span>
                     <span>{{ __('admin.dashboard.system_tour') }}</span>
                 </x-admin.button>
-                @unless(app()->isProduction())
-                <a href="http://localhost:8088"
+                @if(!app()->isProduction() && config('cms.adminer_url'))
+                <a href="{{ config('cms.adminer_url') }}"
                    target="_blank"
                    class="px-4 py-2.5 bg-[color:var(--admin-surface)] hover:bg-[color:var(--admin-surface-raised)] border border-[color:var(--admin-border)] hover:border-[color:var(--admin-border)] text-[color:var(--admin-text)] hover:text-[color:var(--admin-accent)] font-mono font-bold rounded-lg text-xs transition-all flex items-center gap-2 shadow-sm">
                     <i class="fa-solid fa-database"></i>
                     <span>{{ __('admin.layout.adminer') }}</span>
                     <span class="text-[color:var(--admin-muted)]">&nearr;</span>
                 </a>
-                @endunless
+                @endif
             </div>
         </div>
     </x-admin.form-card>

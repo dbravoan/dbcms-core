@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace DbCms\Core\Sections;
 
+use DbCms\Core\Blocks\BlockCatalogService;
 use DbCms\Core\Contracts\Sectionable;
 use DbCms\Core\Contracts\SectionContentVisibility;
 use DbCms\Core\Models\Language;
+use DbCms\Core\Models\Market;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -81,6 +84,7 @@ class SectionSyncService
                         }
                     }
                     $content = $this->availability->reconcile(SectionLayout::normalize($content), $stored);
+                    $this->validateReferences($entity, $content, $locale);
                 }
                 unset($content);
                 foreach ($storedPayload as $locale => $sections) {
@@ -162,6 +166,38 @@ class SectionSyncService
             $entity->unsetRelation('sections');
             $entity->unsetRelation('publishedSections');
         });
+    }
+
+    /** @param array<string, mixed> $payload */
+    private function validateReferences(Model $entity, array $payload, string $locale): void
+    {
+        $catalog = app(BlockCatalogService::class);
+        foreach (SectionLayout::blocks($payload) as $block) {
+            if (SectionLayout::rawColumns($block) !== []) {
+                $this->validateReferences($entity, $block, $locale);
+
+                continue;
+            }
+            $type = (string) ($block['type'] ?? 'text');
+            if (! $catalog->requiresReferenceContext($type)) {
+                continue;
+            }
+            $markets = Market::query()->where('is_active', true)
+                ->whereHas('languages', static fn ($languages) => $languages->where('code', $locale)->where('is_active', true));
+            if (method_exists($entity, 'markets')) {
+                $relation = $entity->markets();
+                if ($relation instanceof BelongsToMany && $relation->exists()) {
+                    $markets->whereIn('id', $relation->pluck('markets.id')->all());
+                }
+            }
+            $destinations = $markets->get();
+            if ($destinations->isEmpty()) {
+                throw ValidationException::withMessages(['sections_json' => 'Dynamic blocks require an active market for their language.']);
+            }
+            foreach ($destinations as $market) {
+                $catalog->validateReferences($type, $block, $market, $locale);
+            }
+        }
     }
 
     /** Only persisted numeric IDs are identity hints. */

@@ -11,9 +11,9 @@ use DbCms\Core\Console\Commands\CreateM2mClientCommand;
 use DbCms\Core\Console\Commands\ExecutionPrivacyCommand;
 use DbCms\Core\Console\Commands\InstallCmsCommand;
 use DbCms\Core\Console\Commands\IssueMcpTokenCommand;
-use DbCms\Core\Console\Commands\MigrateCmsCommand;
 use DbCms\Core\Console\Commands\MigrateMediaToExternalCommand;
 use DbCms\Core\Console\Commands\SearchReindexCommand;
+use DbCms\Core\Console\Commands\SyncAccessCommand;
 use DbCms\Core\Content\Contracts\EntitySchemaRegistryInterface;
 use DbCms\Core\Content\Pages\Models\Page;
 use DbCms\Core\Content\Pages\PagesServiceProvider;
@@ -63,7 +63,6 @@ final class CoreServiceProvider extends ServiceProvider
         $this->loadMigrationsFrom(Cms::path('database/migrations'));
         $this->commands([
             ExecutionPrivacyCommand::class,
-            MigrateCmsCommand::class,
             InstallCmsCommand::class,
             CachePurgeCommand::class,
             CmsMaintenanceCommand::class,
@@ -71,6 +70,7 @@ final class CoreServiceProvider extends ServiceProvider
             CreateM2mClientCommand::class,
             MigrateMediaToExternalCommand::class,
             SearchReindexCommand::class,
+            SyncAccessCommand::class,
         ]);
         Event::listen(DiagnosingHealth::class, static function (): void {
             if (is_file(storage_path('installed'))) {

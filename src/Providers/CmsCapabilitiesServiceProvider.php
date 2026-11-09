@@ -11,6 +11,7 @@ use DbCms\Core\Capabilities\Contracts\CapabilityExecutorInterface;
 use DbCms\Core\Capabilities\Contracts\CapabilityPresentationInterface;
 use DbCms\Core\Capabilities\ExecutionContext;
 use DbCms\Core\Capabilities\Resources\CapabilityResourceRegistry;
+use DbCms\Core\Capabilities\Tools\BlockTypesTool;
 use DbCms\Core\Contracts\Services\ExecutionServiceInterface;
 use DbCms\Core\Services\Capabilities\CapabilityAuditLogger;
 use DbCms\Core\Services\Capabilities\CapabilityAuditService;
@@ -48,6 +49,7 @@ final class CmsCapabilitiesServiceProvider extends ServiceProvider
             $resources = $this->app->make(CapabilityResourceRegistry::class);
             $resources->registerMany(PlatformResourceCatalog::all());
             $registry = $this->app->make(CapabilityRegistry::class);
+            $registry->register($this->app->make(BlockTypesTool::class), effect: 'read');
             foreach (['EntityTypes', 'EntityList', 'EntityGet', 'EntityCreate', 'EntityUpdate', 'EntityDelete'] as $name) {
                 $registry->register($this->app->make('DbCms\\Core\\Capabilities\\Tools\\Entity\\'.$name.'Tool'));
             }

@@ -79,31 +79,25 @@ class AdminNavigationService implements AdminNavigationServiceInterface
     }
 
     /**
-     * Resolve the permission flags shared by every navigation section.
+     * Resolve the permission checks shared by every navigation section.
      *
-     * @return array{isAdmin: bool, isViewer: bool, isEditor: bool, isAuthor: bool, isMarketing: bool, can: callable(string): bool}
+     * Navigation follows the same permissions as the routes: role names are
+     * deliberately irrelevant here.
+     *
+     * @return array{can: callable(string): bool}
      */
     private function permissionContext(?User $user): array
     {
         return [
-            'isAdmin' => $user?->isAdmin() ?? false,
-            'isViewer' => $user?->hasRole('viewer') ?? false,
-            'isEditor' => $user?->hasRole('editor') ?? false,
-            'isAuthor' => $user?->hasRole('author') ?? false,
-            'isMarketing' => $user?->hasRole('marketing') ?? false,
             'can' => fn (string $ability): bool => $user !== null && $user->can($ability),
         ];
     }
 
     /**
-     * @param  array{isAdmin: bool, isViewer: bool, isEditor: bool, isAuthor: bool, isMarketing: bool, can: callable(string): bool}  $ctx
+     * @param  array{can: callable(string): bool}  $ctx
      */
     private function generalSection(array $ctx): AdminNavigationSection
     {
-        $isAdmin = $ctx['isAdmin'];
-        $isEditor = $ctx['isEditor'];
-        $isMarketing = $ctx['isMarketing'];
-        $isViewer = $ctx['isViewer'];
         $can = $ctx['can'];
 
         $items = [];
@@ -115,7 +109,7 @@ class AdminNavigationService implements AdminNavigationServiceInterface
             active: request()->routeIs('admin.dashboard')
         );
 
-        if ($isAdmin || $isEditor || $isMarketing || $isViewer || $can('manage:seo')) {
+        if ($can('manage:seo')) {
             $items[] = new AdminNavigationItem(
                 id: 'nav-seo',
                 label: __('admin.nav.items.seo'),
@@ -137,26 +131,22 @@ class AdminNavigationService implements AdminNavigationServiceInterface
     }
 
     /**
-     * @param  array{isAdmin: bool, isViewer: bool, isEditor: bool, isAuthor: bool, isMarketing: bool, can: callable(string): bool}  $ctx
+     * @param  array{can: callable(string): bool}  $ctx
      */
     private function contentSection(array $ctx): ?AdminNavigationSection
     {
-        $isAdmin = $ctx['isAdmin'];
-        $isEditor = $ctx['isEditor'];
-        $isAuthor = $ctx['isAuthor'];
-        $isViewer = $ctx['isViewer'];
         $can = $ctx['can'];
 
         $items = [];
 
         // Pages
-        if (($isAdmin || $isEditor || $isViewer || $can('manage:pages'))) {
+        if ($can('manage:pages')) {
             $items[] = new AdminNavigationItem(
                 id: 'nav-pages',
                 label: __('admin.nav.items.pages'),
                 route: 'admin.pages.index',
                 icon: 'fa-solid fa-file-lines',
-                createRoute: ($isAdmin || $isEditor || $can('manage:pages')) ? 'admin.pages.create' : null,
+                createRoute: 'admin.pages.create',
                 createTooltip: __('admin.nav.create.page'),
                 active: request()->routeIs('admin.pages.*')
             );
@@ -166,22 +156,15 @@ class AdminNavigationService implements AdminNavigationServiceInterface
     }
 
     /**
-     * @param  array{isAdmin: bool, isViewer: bool, isEditor: bool, isAuthor: bool, isMarketing: bool, can: callable(string): bool}  $ctx
+     * @param  array{can: callable(string): bool}  $ctx
      */
     private function designSection(array $ctx): ?AdminNavigationSection
     {
-        $isAdmin = $ctx['isAdmin'];
-        $isEditor = $ctx['isEditor'];
-        $isViewer = $ctx['isViewer'];
         $can = $ctx['can'];
-
-        if (! ($isAdmin || $isEditor || $isViewer || $can('manage:menus') || $can('manage:themes') || $can('manage:media'))) {
-            return null;
-        }
 
         $items = [];
 
-        if ($isAdmin || $isEditor || $isViewer || $can('manage:menus')) {
+        if ($can('manage:menus')) {
             $items[] = new AdminNavigationItem(
                 id: 'nav-menus',
                 label: __('admin.nav.items.menus'),
@@ -191,7 +174,7 @@ class AdminNavigationService implements AdminNavigationServiceInterface
             );
         }
 
-        if ($isAdmin || $isEditor || $isViewer || $can('manage:themes')) {
+        if ($can('manage:themes')) {
             $items[] = new AdminNavigationItem(
                 id: 'nav-themes',
                 label: __('admin.nav.items.themes'),
@@ -201,17 +184,24 @@ class AdminNavigationService implements AdminNavigationServiceInterface
             );
         }
 
+        if ($can('manage:media')) {
+            $items[] = new AdminNavigationItem(
+                id: 'nav-media',
+                label: __('admin.nav.items.media'),
+                route: 'admin.media.index',
+                icon: 'fa-solid fa-images',
+                active: request()->routeIs('admin.media.*')
+            );
+        }
+
         return empty($items) ? null : new AdminNavigationSection(__('admin.nav.sections.design'), $items, true);
     }
 
     /**
-     * @param  array{isAdmin: bool, isViewer: bool, isEditor: bool, isAuthor: bool, isMarketing: bool, can: callable(string): bool}  $ctx
+     * @param  array{can: callable(string): bool}  $ctx
      */
     private function extensionsSection(array $ctx): ?AdminNavigationSection
     {
-        $isAdmin = $ctx['isAdmin'];
-        $can = $ctx['can'];
-
         $items = [];
         foreach ($this->moduleManager->getActiveModules() as $identifier => $module) {
             foreach ($module->getAdminNavigation() as $item) {
@@ -226,21 +216,15 @@ class AdminNavigationService implements AdminNavigationServiceInterface
     }
 
     /**
-     * @param  array{isAdmin: bool, isViewer: bool, isEditor: bool, isAuthor: bool, isMarketing: bool, can: callable(string): bool}  $ctx
+     * @param  array{can: callable(string): bool}  $ctx
      */
     private function systemSection(array $ctx): ?AdminNavigationSection
     {
-        $isAdmin = $ctx['isAdmin'];
-        $isViewer = $ctx['isViewer'];
         $can = $ctx['can'];
-
-        if (! ($isAdmin || $isViewer || $can('manage:modules') || $can('manage:users') || $can('manage:storage') || $can('manage:blocks'))) {
-            return null;
-        }
 
         $items = [];
 
-        if ($isAdmin || $isViewer || $can('manage:modules')) {
+        if ($can('manage:modules')) {
             $items[] = new AdminNavigationItem(
                 id: 'nav-settings',
                 label: __('admin.nav.items.site_settings'),
@@ -266,7 +250,7 @@ class AdminNavigationService implements AdminNavigationServiceInterface
             );
         }
 
-        if ($isAdmin || $can('manage:blocks')) {
+        if ($can('manage:blocks')) {
             $items[] = new AdminNavigationItem(
                 id: 'nav-block-packages', label: 'Paquetes de bloques',
                 route: 'admin.block-packages.index', icon: 'fa-solid fa-cubes',
@@ -274,7 +258,7 @@ class AdminNavigationService implements AdminNavigationServiceInterface
             );
         }
 
-        if ($isAdmin || $can('manage:storage')) {
+        if ($can('manage:storage')) {
             $items[] = new AdminNavigationItem(
                 id: 'nav-connections',
                 label: __('admin.nav.items.connections'),
@@ -284,7 +268,7 @@ class AdminNavigationService implements AdminNavigationServiceInterface
             );
         }
 
-        if ($isAdmin || $isViewer || $can('manage:users')) {
+        if ($can('manage:users')) {
             $items[] = new AdminNavigationItem(
                 id: 'nav-users',
                 label: __('admin.nav.items.users'),
@@ -292,7 +276,9 @@ class AdminNavigationService implements AdminNavigationServiceInterface
                 icon: 'fa-solid fa-users',
                 active: request()->routeIs('admin.users.*')
             );
+        }
 
+        if ($can('manage:tokens')) {
             $items[] = new AdminNavigationItem(
                 id: 'nav-tokens',
                 label: __('admin.nav.items.tokens'),
@@ -311,7 +297,7 @@ class AdminNavigationService implements AdminNavigationServiceInterface
      */
     private function moduleNavigationItem(string $identifier, array $item, array $context): ?AdminNavigationItem
     {
-        if (($item['visible'] ?? true) === false || (! empty($item['permission']) && ! ($context['isAdmin'] || $context['can']($item['permission'])))) {
+        if (($item['visible'] ?? true) === false || (! empty($item['permission']) && ! $context['can']($item['permission']))) {
             return null;
         }
 

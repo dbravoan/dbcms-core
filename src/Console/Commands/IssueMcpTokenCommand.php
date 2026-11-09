@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace DbCms\Core\Console\Commands;
 
 use DbCms\Core\Models\User;
+use DbCms\Core\Services\Auth\OAuthScopeGrantService;
 use Illuminate\Console\Command;
+use Illuminate\Validation\ValidationException;
 
 class IssueMcpTokenCommand extends Command
 {
@@ -29,18 +31,28 @@ class IssueMcpTokenCommand extends Command
     /**
      * Execute the console command.
      */
-    public function handle(): int
+    public function handle(OAuthScopeGrantService $grants): int
     {
         $userId = $this->option('user');
         $name = (string) $this->option('name');
         $scopesRaw = (string) $this->option('scopes');
-        $scopes = array_filter(array_map('trim', explode(',', $scopesRaw)));
+        $scopes = array_values(array_filter(array_map('trim', explode(',', $scopesRaw))));
 
         /** @var User|null $user */
-        $user = $userId ? User::find($userId) : User::first();
+        $user = $userId
+            ? User::find($userId)
+            : User::query()->whereHas('roles', static fn ($query) => $query->whereIn('slug', ['admin', 'super-admin']))->orderBy('id')->first();
 
         if (! $user) {
-            $this->error('No se encontró ningún usuario para emitir el token.');
+            $this->error('No se encontró un administrador para emitir el token. Usa --user=<id> explícitamente.');
+
+            return self::FAILURE;
+        }
+
+        try {
+            $grants->validate($user, $scopes);
+        } catch (ValidationException $exception) {
+            $this->error(implode(' ', array_merge(...array_values($exception->errors()))));
 
             return self::FAILURE;
         }

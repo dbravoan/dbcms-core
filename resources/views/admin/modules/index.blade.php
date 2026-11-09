@@ -76,6 +76,12 @@
                                 @endif
                             </div>
                             <p class="text-[color:var(--admin-muted)] text-xs mt-1">{{ $module->description ?: __('admin.modules.no_description') }}</p>
+                            @if(isset($modulePrivacyWarnings[$module->identifier]))
+                                <p class="text-amber-500 mt-2" role="status">
+                                    {{ $modulePrivacyWarnings[$module->identifier]['message'] }}
+                                    <a class="underline font-bold" href="{{ route('admin.settings.privacy', ['owner' => $module->identifier]) }}">{{ $modulePrivacyWarnings[$module->identifier]['label'] }}</a>
+                                </p>
+                            @endif
                             <div class="text-[10px] text-[color:var(--admin-muted)] mt-1">{{ __('admin.modules.provider') }}: {{ $module->provider }}</div>
                         </div>
                     </div>

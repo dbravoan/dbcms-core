@@ -15,9 +15,9 @@ use DbCms\Core\Models\Setting;
  *
  * This file must NOT contain theme/brand specific values or branches. The brand
  * identity (name, tagline, logo, icon, edition, accent, tone) lives in each
- * backoffice theme manifest: resources/views/themes/admin/{id}/theme.json.
+ * installed backoffice theme package (`theme.json`).
  *
- * @see docs/18_THEME_MANIFEST_AND_BRAND_REFERENCE.md
+ * @see docs/EXTENSIONS.md
  */
 return [
     'page_views' => [],
@@ -28,8 +28,8 @@ return [
     |--------------------------------------------------------------------------
     | Theme selection
     |--------------------------------------------------------------------------
-    | `CMS_BRAND` selects the backoffice theme directory; `CMS_THEME` selects the
-    | public (front-office) theme under `themes/`.
+    | `CMS_BRAND` selects an installed backoffice theme package; `CMS_THEME`
+    | selects an installed public (front-office) theme package.
     */
     'admin_theme' => env('CMS_BRAND', 'dbcms'),
     'theme' => env('CMS_THEME', 'db-cyber'),
@@ -45,7 +45,7 @@ return [
     'name' => env('APP_NAME', 'CMS'),
     'tagline' => env('CMS_TAGLINE'),
     'admin_path' => env('ADMIN_PATH', 'admin'),
-    'version' => InstalledVersions::getPrettyVersion('dbravoan/dbcms-core') ?? '4.0.0',
+    'version' => InstalledVersions::getPrettyVersion('dbravoan/dbcms-core') ?? '1.0.0',
     'installation_id' => env('CMS_INSTALLATION_ID') ?: substr(hash('sha256', (string) env('APP_KEY', '')), 0, 32),
 
     /*
@@ -59,7 +59,7 @@ return [
     'meta_capi_token' => env('META_CAPI_TOKEN', ''),
     'maintenance_mode' => env('CMS_MAINTENANCE_MODE', false),
     'lock_roles_in_production' => env('CMS_LOCK_ROLES_IN_PRODUCTION', true),
-    'modules' => array_values(array_filter(array_map('trim', explode(',', (string) env('CMS_MODULES', 'ai_assistant,content_audit,mcp'))))),
+    'modules' => array_values(array_filter(array_map('trim', explode(',', (string) env('CMS_MODULES', ''))))),
 
     /*
     |--------------------------------------------------------------------------
@@ -84,6 +84,7 @@ return [
     | unless the app runs in `local` AND the flag below is explicitly enabled.
     */
     'quick_login' => env('CMS_QUICK_LOGIN', false),
+    'adminer_url' => env('CMS_ADMINER_URL'),
 
     /*
     |--------------------------------------------------------------------------

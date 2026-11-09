@@ -61,7 +61,7 @@ final class FrontViewResolver
     }
 
     /**
-     * Resolve the theme layout, falling back to the reference theme.
+     * Resolve the theme layout. The selected theme must supply it.
      */
     /** @return view-string */
     public function layout(string $layout = 'app'): string

@@ -49,6 +49,11 @@ class CheckMaintenanceMode
             return $next($request);
         }
 
+        // The login and maintenance views need the installed admin theme assets.
+        if ($request->routeIs('theme.asset')) {
+            return $next($request);
+        }
+
         // Authenticated backoffice staff bypass
         $user = Auth::guard('web')->user();
         if ($user !== null) {

@@ -11,6 +11,7 @@ use DbCms\Core\Capabilities\Contracts\CapabilityPresentationInterface;
 use DbCms\Core\Capabilities\Resources\CapabilityResource;
 use DbCms\Core\Capabilities\Resources\CapabilityResourceRegistry;
 use DbCms\Core\Content\Contracts\EntitySchemaRegistryInterface;
+use DbCms\Core\Content\EntitySchema;
 use DbCms\Core\Modules\ModuleManager;
 
 /** Projects module-owned schema registrations into an actor's public catalog.
@@ -24,19 +25,20 @@ final class CmsCapabilityPresentation implements CapabilityPresentationInterface
      */
     public function reason(string $name, array $args, ActorContext $actor): ?string
     {
-        $entity = str_starts_with($name, 'cms_entity_') || in_array($name, ['cms_audit_approve', 'cms_audit_reject', 'cms_audit_rollback', 'cms_content_sections_get', 'cms_content_sections_sync'], true);
+        $block = $name === 'cms_block_types';
+        $entity = $block || str_starts_with($name, 'cms_entity_') || in_array($name, ['cms_audit_approve', 'cms_audit_reject', 'cms_audit_rollback', 'cms_content_sections_get', 'cms_content_sections_sync'], true);
         $resource = str_starts_with($name, 'cms_resource_');
         if (! $entity && ! $resource) {
             return null;
         }
-        $key = $entity ? 'type' : 'resource';
+        $key = $block ? 'entity_type' : ($entity ? 'type' : 'resource');
         $target = (string) ($args[$key] ?? '');
         if ($target === '') {
             return null;
         }
         $schemas = $entity ? $this->entities->all() : $this->resources->all();
         $schema = $schemas[$target] ?? null;
-        if ($schema === null || ! $this->active($schema->model)) {
+        if ($schema === null || ! $this->active($schema->model) || ($block && (! $schema instanceof EntitySchema || ! $schema->sectionable))) {
             return 'El módulo propietario no está disponible.';
         }
         if ($schema instanceof CapabilityResource) {
@@ -58,7 +60,8 @@ final class CmsCapabilityPresentation implements CapabilityPresentationInterface
      */
     public function schema(string $name, array $schema, ActorContext $actor): ?array
     {
-        $entity = str_starts_with($name, 'cms_entity_') || in_array($name, ['cms_audit_approve', 'cms_audit_reject', 'cms_audit_rollback', 'cms_content_sections_get', 'cms_content_sections_sync'], true);
+        $block = $name === 'cms_block_types';
+        $entity = $block || str_starts_with($name, 'cms_entity_') || in_array($name, ['cms_audit_approve', 'cms_audit_reject', 'cms_audit_rollback', 'cms_content_sections_get', 'cms_content_sections_sync'], true);
         $resource = str_starts_with($name, 'cms_resource_');
         if (! $entity && ! $resource) {
             return $schema;
@@ -66,7 +69,7 @@ final class CmsCapabilityPresentation implements CapabilityPresentationInterface
         $choices = [];
         $ability = $this->capabilities->get($name)?->ability() ?? 'read';
         foreach ($entity ? $this->entities->all() : $this->resources->all() as $key => $target) {
-            $args = [$entity ? 'type' : 'resource' => $key];
+            $args = [$block ? 'entity_type' : ($entity ? 'type' : 'resource') => $key];
             if ($this->active($target->model) && $this->authorizer->allowed($actor, $ability, $target->permission ?? 'access:admin') && $this->reason($name, $args, $actor) === null) {
                 $choices[] = $key;
             }
@@ -74,8 +77,9 @@ final class CmsCapabilityPresentation implements CapabilityPresentationInterface
         if ($choices === []) {
             return null;
         }
-        if (isset($schema['parameters']['properties'][$entity ? 'type' : 'resource'])) {
-            $schema['parameters']['properties'][$entity ? 'type' : 'resource']['enum'] = $choices;
+        $key = $block ? 'entity_type' : ($entity ? 'type' : 'resource');
+        if (isset($schema['parameters']['properties'][$key])) {
+            $schema['parameters']['properties'][$key]['enum'] = $choices;
         }
 
         return $schema;

@@ -382,6 +382,13 @@
                 </div>
             @endif
 
+            @if(! empty($inactive))
+                <p class="mb-4 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-300 px-4 py-3 flex items-start gap-2" role="status">
+                    <span class="font-bold shrink-0">{{ __('admin.modules.inactive') }}</span>
+                    <span>{{ __('admin.modules.settings_inactive_notice') }}</span>
+                </p>
+            @endif
+
             @yield('content')
         </main>
     </div>

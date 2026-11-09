@@ -455,6 +455,7 @@
                     </template>
 
                 </div>
+                </div>
 
                 <!-- Intermediate / Bottom Insertion Zone (visible on hover between blocks or at the end) -->
                 <div class="group/insert relative z-20 py-2.5 -my-1 transition-all">
@@ -468,7 +469,6 @@
                         </button>
                     </div>
                 </div>
-            </div>
             </div>
         </template>
     </div>

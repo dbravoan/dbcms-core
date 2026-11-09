@@ -14,7 +14,7 @@ final class RobotsTxtService
         $lines = ['User-agent: *'];
 
         if (! $isProduction) {
-            // Staging/preview deployments must never be indexed.
+            // Staging/preview environments must never be indexed.
             $lines[] = 'Disallow: /';
         } else {
             $lines[] = 'Disallow: /'.trim((string) config('cms.admin_path', 'admin'), '/').'/';

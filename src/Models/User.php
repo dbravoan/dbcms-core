@@ -20,6 +20,7 @@ use Laravel\Passport\HasApiTokens;
  * @property string $email
  * @property string $password
  * @property string|null $locale
+ * @property bool $is_service_account
  * @property Carbon|null $email_verified_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at

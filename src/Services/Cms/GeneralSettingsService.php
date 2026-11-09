@@ -26,7 +26,9 @@ class GeneralSettingsService implements GeneralSettingsServiceInterface
 
         if ($this->cache !== null && array_key_exists($key, $this->cache)) {
             $val = $this->cache[$key];
-            if ($val !== null && $val !== '') {
+            // An explicit empty string is a real value: clearing a nullable
+            // setting must not resurrect the config/default fallback.
+            if ($val !== null) {
                 return $val;
             }
         }

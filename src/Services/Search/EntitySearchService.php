@@ -253,7 +253,10 @@ class EntitySearchService implements EntitySearchServiceInterface
             return;
         }
 
-        $builder->whereHas('markets', static fn (Builder $markets) => $markets->whereIn('markets.id', $ids));
+        $builder->where(static function (Builder $query) use ($ids): void {
+            $query->whereHas('markets', static fn (Builder $markets) => $markets->whereIn('markets.id', $ids))
+                ->orDoesntHave('markets');
+        });
     }
 
     /**

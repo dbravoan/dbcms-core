@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace DbCms\Core\Services\Cms;
 
+use DbCms\Core\Contracts\Services\LocalizationServiceInterface;
 use DbCms\Core\Contracts\Services\PublicContentDiscoveryInterface;
 use DbCms\Core\Models\Market;
 use DbCms\Core\Models\Menu;
@@ -14,7 +15,8 @@ use Illuminate\Support\Facades\DB;
 class MenuService
 {
     public function __construct(
-        private readonly PageCacheService $pageCache
+        private readonly PageCacheService $pageCache,
+        private readonly LocalizationServiceInterface $localization,
     ) {}
 
     /**
@@ -94,10 +96,17 @@ class MenuService
      */
     protected function formatItem(MenuItem $item, string $marketCode, string $locale): ?array
     {
-        $translation = $item->translations->where('locale', $locale)->first()
-            ?? $item->translations->first();
+        $translation = $item->translations->where('locale', $locale)->first();
+        if ($translation === null && $item->type === 'page') {
+            return null;
+        }
 
-        $title = $translation ? $translation->title : "Item #{$item->id}";
+        // A non-page container may exist only as a grouping node. Keep it so
+        // its localized children still render; never borrow another language's
+        // title for a page entry.
+        $title = $translation !== null
+            ? (string) $translation->title
+            : (string) ($item->url ?: "Item #{$item->id}");
         $urlOverride = $translation?->url_override;
 
         $url = $this->resolveItemUrl($item, $urlOverride, $marketCode, $locale);
@@ -132,8 +141,9 @@ class MenuService
 
     protected function resolveItemUrl(MenuItem $item, ?string $urlOverride, string $marketCode, string $locale): ?string
     {
+        $market = Market::where('code', $marketCode)->first();
+
         if ($item->type === 'page' && $item->target_id !== null) {
-            $market = Market::where('code', $marketCode)->first();
             if ($market === null) {
                 return null;
             }
@@ -148,19 +158,24 @@ class MenuService
             return $rawUrl;
         }
 
+        // Module links use the same localized prefix resolver as the front
+        // controllers; every project can rename /blog, /shop or /galeria.
+        if (in_array($item->type, ['blog', 'shop', 'gallery', 'search'], true)) {
+            return $this->localization->frontUrl($item->type, '', $locale, $market);
+        }
+
         return match ($item->type) {
-            'blog' => url("/{$marketCode}/{$locale}/blog"),
-            'shop' => url("/{$marketCode}/{$locale}/shop"),
-            'gallery' => url("/{$marketCode}/{$locale}/".($locale === 'en' ? 'gallery' : 'galeria')),
-            'page' => $this->resolvePageUrl($rawUrl, $marketCode, $locale),
-            default => ! empty($rawUrl) ? url("/{$marketCode}/{$locale}/".ltrim($rawUrl, '/')) : url("/{$marketCode}/{$locale}"),
+            'page' => $this->resolvePageUrl($rawUrl, $marketCode, $locale, $market),
+            default => ! empty($rawUrl)
+                ? $this->localization->url('/'.ltrim($rawUrl, '/'), $market, $locale)
+                : $this->localization->url('/', $market, $locale),
         };
     }
 
-    protected function resolvePageUrl(?string $url, string $marketCode, string $locale): string
+    protected function resolvePageUrl(?string $url, string $marketCode, string $locale, ?Market $market = null): string
     {
         if (empty($url)) {
-            return url("/{$marketCode}/{$locale}");
+            return $this->localization->url('/', $market, $locale);
         }
 
         $cleanSlug = ltrim($url, '/');
@@ -170,10 +185,10 @@ class MenuService
         $cleanSlug = trim($cleanSlug, '/');
 
         if ($cleanSlug === '' || $cleanSlug === 'home') {
-            return url("/{$marketCode}/{$locale}");
+            return $this->localization->url('/', $market, $locale);
         }
 
-        return url("/{$marketCode}/{$locale}/{$cleanSlug}");
+        return $this->localization->url('/'.$cleanSlug, $market, $locale);
     }
 
     /**

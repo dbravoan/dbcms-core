@@ -13,9 +13,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * @property int $id
+ * @property int $menu_id
+ * @property int|null $parent_id
  * @property string $type
  * @property int|null $target_id
  * @property string|null $url
+ * @property int $order
  * @property bool $is_active
  * @property bool $target_blank
  */

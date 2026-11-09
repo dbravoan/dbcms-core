@@ -6,6 +6,7 @@
     kind: 'all',
     targetField: null,
     uploading: false,
+    importUrl: '',
     uploadError: '',
     selectedFile: null,
     savingMetadata: false,
@@ -92,6 +93,28 @@
             this.uploading = false;
             this.uploadError = 'Fallo en la comunicación con el servidor.';
         });
+    },
+
+    async importImage() {
+        if (!this.importUrl.trim() || this.uploading) return;
+        this.uploading = true;
+        this.uploadError = '';
+        try {
+            const response = await fetch('{{ route('admin.media.import') }}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                body: JSON.stringify({ url: this.importUrl.trim() })
+            });
+            const data = await response.json();
+            if (!response.ok || !data.success) throw new Error(data.message || 'No se pudo importar la imagen.');
+            this.selectedFile = data.file;
+            this.importUrl = '';
+            this.fetchFiles();
+        } catch (error) {
+            this.uploadError = error.message || 'No se pudo importar la imagen.';
+        } finally {
+            this.uploading = false;
+        }
     },
 
     clickFile(file) {
@@ -268,6 +291,11 @@
         </div>
 
         <!-- Upload error banner -->
+        <div x-show="kind === 'image' || kind === 'all'" class="p-3 border-b border-[color:var(--admin-border)] flex gap-2 items-center">
+            <label for="cms-media-import-url" class="text-xs">URL de imagen</label>
+            <input id="cms-media-import-url" type="url" x-model="importUrl" placeholder="https://…" class="admin-control flex-1" @keydown.enter.prevent="importImage()">
+            <button type="button" @click="importImage()" :disabled="uploading || !importUrl.trim()" class="admin-btn-secondary">Importar imagen</button>
+        </div>
         <div x-show="uploadError" x-cloak class="p-2.5 bg-red-950/60 border-b border-red-800 text-red-300 font-mono text-xs flex items-center justify-between">
             <span class="flex items-center gap-1.5"><i class="fa-solid fa-triangle-exclamation"></i> <span x-text="uploadError"></span></span>
             <button @click="uploadError = ''" class="text-[color:var(--admin-muted)] hover:text-[color:var(--admin-text)]">&times;</button>

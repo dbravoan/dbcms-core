@@ -37,7 +37,7 @@ class ModuleSettingsService implements ModuleSettingsServiceInterface
     {
         $all = $this->getAll($moduleIdentifier);
 
-        if (array_key_exists($key, $all) && $all[$key] !== null && $all[$key] !== '') {
+        if (array_key_exists($key, $all) && $all[$key] !== null) {
             return $all[$key];
         }
 
