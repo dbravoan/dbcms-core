@@ -7,12 +7,16 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin publicar]
 
+## [1.1.0] - 2026-11-12
+
 ### Añadido
 
 - `cms:access:sync` y `AccessProvisioner` para crear/reconciliar permisos y roles.
 - Gates generados desde el catálogo de permisos, incluidos módulos opcionales.
 - Plantillas legales y de privacidad para `fr`, `it`, `pt`, `de`, `ar` y `zh-CN`.
 - `MoneyFormatter` con CLDR para cualquier moneda ISO 4217.
+- Helper `public_translation` y `PublicTranslation::resolveForMarketId` para
+  compartir la resolución de idioma y mercado en vistas, modelos y servicios.
 
 ### Corregido
 
