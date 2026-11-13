@@ -6,17 +6,23 @@
  */
 import Alpine from 'alpinejs';
 import collapse from '@alpinejs/collapse';
-import { createBlockManager } from './block-manager';
 import { createGalleryEditor } from './gallery-editor';
 import { createVisitorGeoSelector } from './visitor-geo';
 import { installConsent, createConsentPanel } from './privacy-consent';
+import { installOverlays } from './overlays';
+import registerBlocks from 'virtual:dbcms-blocks';
 
 window.Alpine = Alpine;
+if (document.documentElement.hasAttribute('data-cms-preview')) {
+    document.addEventListener('submit', event => event.preventDefault(), true);
+    document.addEventListener('click', event => {
+        if (event.target.closest?.('a[href]')) event.preventDefault();
+    }, true);
+}
 
 // The front themes use `x-collapse` for their own collapsible blocks, so the
 // plugin is bundled locally (no CDN) and registered before boot.
 Alpine.plugin(collapse);
-Alpine.data('blockManager', createBlockManager);
 Alpine.data('galleryEditor', createGalleryEditor);
 Alpine.data('visitorGeoSelector', createVisitorGeoSelector);
 installConsent();
@@ -24,6 +30,26 @@ Alpine.data('cookieConsent', createConsentPanel);
 
 import registerModules from 'virtual:dbcms-modules';
 registerModules(Alpine);
+installOverlays();
+registerBlocks(Alpine);
+
+let presentationLoading;
+const initializePresentation = () => {
+    if (!presentationLoading && document.querySelector('[data-scroll-magic],[data-scroll-scrub],[data-scroll-video]')) {
+        presentationLoading = import('./block-presentation').then(({ installPresentation }) => {
+            const runtime = installPresentation();
+            presentationObserver.disconnect();
+            return runtime;
+        });
+        presentationLoading.catch(error => { presentationLoading = null; console.error('No se pudo iniciar la presentación CMS.', error); });
+    }
+};
+const presentationObserver = new MutationObserver(initializePresentation);
+presentationObserver.observe(document.documentElement, { childList: true, subtree: true });
+initializePresentation();
+if (document.documentElement.hasAttribute('data-cms-preview')) {
+    import('./block-preview').then(({ installBlockPreview }) => installBlockPreview()).catch(error => console.error('No se pudo iniciar la previsualización CMS.', error));
+}
 
 /**
  * Shared navigation state.
@@ -68,7 +94,20 @@ document.querySelectorAll('details[data-filter-collapsible]').forEach((panel) =>
     }
 });
 
-Alpine.start();
+async function startApplication() {
+    if (document.querySelector('[data-install-wizard]')) {
+        const { createInstallationWizard } = await import('./install-wizard');
+        Alpine.data('installationWizard', createInstallationWizard);
+    }
+    // Public pages never download the authoring tree, history or rich-text editor.
+    // Register its Alpine provider before evaluating an actual block manager.
+    if (document.querySelector('.admin-block-manager')) {
+        const { createBlockManager } = await import('./block-manager');
+        Alpine.data('blockManager', createBlockManager);
+    }
+    Alpine.start();
+}
+startApplication().catch(error => console.error('No se pudo iniciar la interfaz CMS.', error));
 
 /**
  * CSP-safe progressive enhancement.

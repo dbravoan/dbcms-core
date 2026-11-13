@@ -19,7 +19,7 @@ final class MediaUploadPostController extends Controller
     public function __invoke(Request $request): JsonResponse
     {
         $request->validate([
-            'file' => 'required|file|mimes:jpg,jpeg,png,webp,gif,svg,mp4,webm,mov,pdf,doc,docx,xls,xlsx,txt|max:51200',
+            'file' => 'required|file|max:'.MediaManagerService::MAX_UPLOAD_KILOBYTES,
         ]);
 
         /** @var UploadedFile $file */

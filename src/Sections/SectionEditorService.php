@@ -100,7 +100,7 @@ class SectionEditorService
                 continue;
             }
 
-            if ((string) $translation->getAttribute('locale') === $locale) {
+            if ((string) $translation->getAttribute('locale') === $locale && $translation->getAttribute('market_id') === null) {
                 return (array) ($translation->getAttribute('content_json') ?? []);
             }
         }

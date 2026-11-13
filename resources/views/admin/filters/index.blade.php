@@ -210,7 +210,7 @@
                     </h3>
                     <p class="text-[10px] text-[color:var(--admin-muted)]">{{ __('admin.filters.intro_hint') }}</p>
 
-                    <x-admin.block-manager
+                    <x-admin.block-manager entity-type="filter_page" :entity-id="$form['id'] ?? null"
                         :sections="$form['sections']"
                         name="intro_blocks_json"
                         :languages="$languages"

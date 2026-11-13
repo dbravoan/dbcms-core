@@ -7,6 +7,22 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin publicar]
 
+## [1.2.0] - 2026-11-13
+
+### Añadido
+
+- Configuración final del instalador en cuatro pasos, con titular particular, NIF/CIF y datos registrales o DPO condicionales; conserva los datos al navegar y valida antes del envío final.
+
+- Árboles de bloques declarados por esquema, con límites, apariencia tipada, render compartido con Blade y extracción semántica anidada.
+- Editor recursivo, historial de sesión, previsualización sin envíos, datos y ejemplo Blade.
+- Inspector contextual de contenido, diseño y opciones avanzadas con vista de la composición, controles visuales y herencia responsive.
+- Región de contenido compartida con Blade, extensión a ventana explícita y motor común de fondos y movimiento para secciones, columnas y bloques.
+- Plantillas insertables, componentes reutilizables publicados, fuentes públicas y vinculaciones acotadas.
+- Catálogo resumido, referencias paginadas, `cms:blocks:describe` y edición de nodos con versión.
+- Assets públicos por demanda, overlays accesibles y audio/Lottie validados en medios.
+- Vite incorpora los estilos de paquetes desde la entrada del proyecto, tanto con dependencias enlazadas como distribuidas.
+
+
 ## [1.1.0] - 2026-11-12
 
 ### Añadido

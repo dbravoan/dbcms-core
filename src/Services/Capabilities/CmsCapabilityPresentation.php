@@ -25,8 +25,8 @@ final class CmsCapabilityPresentation implements CapabilityPresentationInterface
      */
     public function reason(string $name, array $args, ActorContext $actor): ?string
     {
-        $block = $name === 'cms_block_types';
-        $entity = $block || str_starts_with($name, 'cms_entity_') || in_array($name, ['cms_audit_approve', 'cms_audit_reject', 'cms_audit_rollback', 'cms_content_sections_get', 'cms_content_sections_sync'], true);
+        $block = in_array($name, ['cms_block_types', 'cms_block_references', 'cms_block_presets'], true);
+        $entity = $block || str_starts_with($name, 'cms_entity_') || in_array($name, ['cms_audit_approve', 'cms_audit_reject', 'cms_audit_rollback', 'cms_content_sections_get', 'cms_content_sections_sync', 'cms_content_sections_patch'], true);
         $resource = str_starts_with($name, 'cms_resource_');
         if (! $entity && ! $resource) {
             return null;
@@ -60,8 +60,8 @@ final class CmsCapabilityPresentation implements CapabilityPresentationInterface
      */
     public function schema(string $name, array $schema, ActorContext $actor): ?array
     {
-        $block = $name === 'cms_block_types';
-        $entity = $block || str_starts_with($name, 'cms_entity_') || in_array($name, ['cms_audit_approve', 'cms_audit_reject', 'cms_audit_rollback', 'cms_content_sections_get', 'cms_content_sections_sync'], true);
+        $block = in_array($name, ['cms_block_types', 'cms_block_references', 'cms_block_presets'], true);
+        $entity = $block || str_starts_with($name, 'cms_entity_') || in_array($name, ['cms_audit_approve', 'cms_audit_reject', 'cms_audit_rollback', 'cms_content_sections_get', 'cms_content_sections_sync', 'cms_content_sections_patch'], true);
         $resource = str_starts_with($name, 'cms_resource_');
         if (! $entity && ! $resource) {
             return $schema;

@@ -63,6 +63,13 @@ final class SecurityHeaders
         return $response;
     }
 
+    /** Trusted CMS previews retain the normal asset policy and block write/navigation capabilities. */
+    public function previewPolicy(): string
+    {
+        return str_replace("form-action 'self'", "form-action 'none'", $this->contentSecurityPolicy((string) Vite::cspNonce()))
+            .'; sandbox allow-scripts allow-same-origin';
+    }
+
     /**
      * Self-hosted CSP extended by configured module contributors.
      */

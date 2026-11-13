@@ -7,7 +7,9 @@ páginas, menús, publicación, secciones, temas, SEO técnico y privacidad. El 
 propio de Laravel permanece en `App`; el núcleo utiliza `DbCms\Core`.
 
 En una instalación nueva abre `/install`, indica datos reales de base de datos y
-responsable/empresa y crea el administrador. El sitio comienza vacío. Configura
+titular y crea el administrador. La configuración final se divide en Sitio,
+Administrador, Titular y Privacidad. El titular puede ser una persona; los datos
+registrales solo se exigen si se indica que corresponden. El sitio comienza vacío. Configura
 idiomas y mercados antes de crear contenido: traducir no publica ni asigna a todos
 los mercados.
 

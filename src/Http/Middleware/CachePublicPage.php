@@ -61,7 +61,7 @@ final class CachePublicPage
 
         if ($cached !== null) {
             try {
-                return $this->fromCache($cached);
+                return $this->fromCache($cached, $request);
             } catch (\Throwable) {
                 Cache::forget($key);
             }
@@ -79,7 +79,7 @@ final class CachePublicPage
         }
 
         if ($this->shouldStore($request, $response)) {
-            $this->write($key, $response, $dependencies);
+            $this->write($key, $response, $dependencies, $request);
         }
         $this->applyCacheHeaders($response);
 
@@ -187,9 +187,13 @@ final class CachePublicPage
     /**
      * @param  array<int, string>  $dependencyKeys
      */
-    private function write(string $key, Response $response, array $dependencyKeys = []): void
+    private function write(string $key, Response $response, array $dependencyKeys, Request $request): void
     {
-        $content = $this->personalization->snapshot((string) $response->getContent(), (string) csrf_token());
+        $content = $this->personalization->snapshot((string) $response->getContent(), (string) csrf_token(), [
+            'entity_type' => $request->attributes->get('cms.public.entity_type'),
+            'entity_id' => $request->attributes->get('cms.public.entity_id'),
+            'taxonomies' => $request->attributes->get('cms.public.taxonomies', []),
+        ]);
 
         if ($content === '') {
             return;
@@ -222,9 +226,9 @@ final class CachePublicPage
      *
      * @param  array{content: string, etag: string, nonce?: string|null}  $cached
      */
-    private function fromCache(array $cached): Response
+    private function fromCache(array $cached, Request $request): Response
     {
-        $content = $this->personalization->hydrate((string) $cached['content'], (string) csrf_token(), static fn ($view): string => view($view)->render());
+        $content = $this->personalization->hydrate((string) $cached['content'], (string) csrf_token(), static fn ($view): string => view($view)->render(), $request);
         $content = $this->withFreshNonce($content, $cached['nonce'] ?? null);
 
         $response = response($content, 200);

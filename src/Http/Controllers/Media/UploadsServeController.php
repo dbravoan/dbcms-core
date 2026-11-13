@@ -38,9 +38,10 @@ final class UploadsServeController extends Controller
             abort(404);
         }
 
+        $headers = strtolower(pathinfo($relative, PATHINFO_EXTENSION)) === 'vtt' ? ['Content-Type' => 'text/vtt; charset=UTF-8'] : [];
         $localPath = $this->urlResolver->localPath($relative);
         if (is_file($localPath)) {
-            return response()->file($localPath);
+            return response()->file($localPath, $headers);
         }
 
         if ($this->externalStorage->isConfigured()) {
@@ -51,7 +52,7 @@ final class UploadsServeController extends Controller
                         return redirect()->away($this->externalStorage->url($relative));
                     }
 
-                    return Storage::disk(ExternalStorageService::DISK)->response($relative);
+                    return Storage::disk(ExternalStorageService::DISK)->response($relative, null, $headers);
                 }
             } catch (Throwable) {
                 // Fall through to a clean 404.

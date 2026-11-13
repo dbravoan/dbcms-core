@@ -17,6 +17,22 @@ use Illuminate\Validation\ValidationException;
 
 class MediaManagerService
 {
+    private const UPLOAD_MIME_TYPES = [
+        'jpg' => ['image/jpeg'], 'jpeg' => ['image/jpeg'], 'png' => ['image/png'],
+        'webp' => ['image/webp'], 'gif' => ['image/gif'],
+        'svg' => ['image/svg+xml', 'text/xml', 'application/xml'],
+        'mp4' => ['video/mp4'], 'webm' => ['video/webm'], 'mov' => ['video/quicktime'],
+        'pdf' => ['application/pdf'], 'doc' => ['application/msword', 'application/x-ole-storage'],
+        'xls' => ['application/vnd.ms-excel', 'application/x-ole-storage'],
+        'docx' => ['application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+        'xlsx' => ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'],
+        'txt' => ['text/plain'],
+        'mp3' => ['audio/mpeg'], 'wav' => ['audio/x-wav', 'audio/wav'],
+        'ogg' => ['audio/ogg', 'application/ogg'], 'm4a' => ['audio/mp4', 'video/mp4'],
+        'json' => ['application/json', 'text/plain'],
+        'vtt' => ['text/vtt', 'text/plain'],
+    ];
+
     public const MAX_UPLOAD_KILOBYTES = 51200;
 
     public function __construct(
@@ -98,7 +114,7 @@ class MediaManagerService
                 $ext = strtolower(pathinfo($record->filename, PATHINFO_EXTENSION));
                 $isImage = in_array($ext, ['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg'], true) || str_starts_with($record->mime_type, 'image/');
                 $isVideo = in_array($ext, ['mp4', 'webm', 'mov'], true) || str_starts_with($record->mime_type, 'video/');
-                $isDoc = in_array($ext, ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt'], true);
+                $isDoc = in_array($ext, ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt', 'vtt'], true);
 
                 $result[] = [
                     'id' => $record->id,
@@ -116,6 +132,8 @@ class MediaManagerService
                     'height' => $record->height,
                     'is_image' => $isImage,
                     'is_video' => $isVideo,
+                    'is_audio' => in_array($ext, ['mp3', 'wav', 'ogg', 'm4a'], true),
+                    'is_animation' => $ext === 'json',
                     'is_doc' => $isDoc,
                 ];
             }
@@ -130,7 +148,7 @@ class MediaManagerService
             $ext = strtolower($file->getExtension());
             $isImage = in_array($ext, ['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg'], true);
             $isVideo = in_array($ext, ['mp4', 'webm', 'mov'], true);
-            $isDoc = in_array($ext, ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt'], true);
+            $isDoc = in_array($ext, ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt', 'vtt'], true);
             $sizeBytes = $file->getSize();
             $sizeFormatted = $sizeBytes > 1048576 ? round($sizeBytes / 1048576, 1).' MB' : round($sizeBytes / 1024, 1).' KB';
 
@@ -150,6 +168,8 @@ class MediaManagerService
                 'height' => null,
                 'is_image' => $isImage,
                 'is_video' => $isVideo,
+                'is_audio' => in_array($ext, ['mp3', 'wav', 'ogg', 'm4a'], true),
+                'is_animation' => $ext === 'json',
                 'is_doc' => $isDoc,
             ];
         }
@@ -181,7 +201,7 @@ class MediaManagerService
         $this->validateUpload($file);
         $dir = $this->getUploadDir();
 
-        $allowedExtensions = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg', 'mp4', 'webm', 'mov', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt'];
+        $allowedExtensions = array_keys(self::UPLOAD_MIME_TYPES);
         $ext = strtolower($file->getClientOriginalExtension());
         if (! in_array($ext, $allowedExtensions, true)) {
             throw new \InvalidArgumentException("Tipo de archivo no permitido [{$ext}].");
@@ -240,7 +260,7 @@ class MediaManagerService
         $title = Str::headline($baseName);
         $altText = $title;
         $sizeBytes = File::exists($fullPath) ? (int) File::size($fullPath) : (int) $file->getSize();
-        $mime = (string) (File::mimeType($fullPath) ?: 'application/octet-stream');
+        $mime = $ext === 'vtt' ? 'text/vtt' : (string) (File::mimeType($fullPath) ?: 'application/octet-stream');
 
         $recordId = $filename;
         if (Schema::hasTable('media_files')) {
@@ -278,6 +298,10 @@ class MediaManagerService
             'width' => $width,
             'height' => $height,
             'is_image' => $isImage,
+            'is_video' => str_starts_with($mime, 'video/'),
+            'is_doc' => in_array($ext, ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt', 'vtt'], true),
+            'is_audio' => str_starts_with($mime, 'audio/'),
+            'is_animation' => strtolower(pathinfo($filename, PATHINFO_EXTENSION)) === 'json',
         ];
     }
 
@@ -285,21 +309,16 @@ class MediaManagerService
     private function validateUpload(UploadedFile $file): void
     {
         Validator::make(['file' => $file], ['file' => 'required|file|max:'.self::MAX_UPLOAD_KILOBYTES])->validate();
-        $allowed = [
-            'jpg' => ['image/jpeg'], 'jpeg' => ['image/jpeg'], 'png' => ['image/png'],
-            'webp' => ['image/webp'], 'gif' => ['image/gif'],
-            'svg' => ['image/svg+xml', 'text/xml', 'application/xml'],
-            'mp4' => ['video/mp4'], 'webm' => ['video/webm'], 'mov' => ['video/quicktime'],
-            'pdf' => ['application/pdf'], 'doc' => ['application/msword', 'application/x-ole-storage'],
-            'xls' => ['application/vnd.ms-excel', 'application/x-ole-storage'],
-            'docx' => ['application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
-            'xlsx' => ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'],
-            'txt' => ['text/plain'],
-        ];
         $extension = strtolower($file->getClientOriginalExtension());
         $mime = (string) (new \finfo(FILEINFO_MIME_TYPE))->file($file->getPathname());
-        if (! isset($allowed[$extension]) || ! in_array($mime, $allowed[$extension], true)) {
+        if (! isset(self::UPLOAD_MIME_TYPES[$extension]) || ! in_array($mime, self::UPLOAD_MIME_TYPES[$extension], true)) {
             throw ValidationException::withMessages(['file' => 'El contenido del archivo no corresponde a una extensión permitida.']);
+        }
+        if ($extension === 'vtt') {
+            app(CaptionDocument::class)->validate((string) file_get_contents($file->getPathname()));
+        }
+        if ($extension === 'json') {
+            app(AnimationDocument::class)->validate((string) file_get_contents($file->getPathname()));
         }
     }
 
@@ -331,13 +350,14 @@ class MediaManagerService
         $width = is_array($dims) ? (int) $dims[0] : null;
         $height = is_array($dims) ? (int) $dims[1] : null;
 
-        Storage::disk(ExternalStorageService::DISK)->put($filename, (string) file_get_contents($tempPath));
+        $isCaption = strtolower(pathinfo($filename, PATHINFO_EXTENSION)) === 'vtt';
+        Storage::disk(ExternalStorageService::DISK)->put($filename, (string) file_get_contents($tempPath), $isCaption ? ['mimetype' => 'text/vtt', 'ContentType' => 'text/vtt'] : []);
 
         $url = $this->externalStorage->url($filename);
         $originalName = $file->getClientOriginalName();
         $title = Str::headline(pathinfo($originalName, PATHINFO_FILENAME));
         $sizeBytes = (int) ($file->getSize() ?: 0);
-        $mime = (string) ((new \finfo(FILEINFO_MIME_TYPE))->file($tempPath) ?: 'application/octet-stream');
+        $mime = $isCaption ? 'text/vtt' : (string) ((new \finfo(FILEINFO_MIME_TYPE))->file($tempPath) ?: 'application/octet-stream');
 
         $recordId = $filename;
         if (Schema::hasTable('media_files')) {
@@ -375,6 +395,10 @@ class MediaManagerService
             'width' => $width,
             'height' => $height,
             'is_image' => $isImage,
+            'is_video' => str_starts_with($mime, 'video/'),
+            'is_doc' => strtolower(pathinfo($filename, PATHINFO_EXTENSION)) === 'vtt' || in_array($mime, ['application/pdf', 'text/plain', 'text/vtt'], true),
+            'is_audio' => str_starts_with($mime, 'audio/'),
+            'is_animation' => strtolower(pathinfo($filename, PATHINFO_EXTENSION)) === 'json',
         ];
     }
 

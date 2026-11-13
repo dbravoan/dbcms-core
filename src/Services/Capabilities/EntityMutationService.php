@@ -296,7 +296,11 @@ class EntityMutationService
             }
             $attributes = $entity->getAttributes();
             $published = (bool) ($attributes['is_published'] ?? $attributes['is_active'] ?? false);
-            app(SectionSyncService::class)->sync($entity, $json, $published ? 'published' : 'draft');
+            $orderLocale = $args['sections_order_locale'] ?? null;
+            if ($orderLocale !== null && ! is_string($orderLocale)) {
+                throw ValidationException::withMessages(['sections_order_locale' => 'The ordering locale must be an active language code.']);
+            }
+            app(SectionSyncService::class)->sync($entity, $json, $published ? 'published' : 'draft', $orderLocale);
         }
         app(SectionSyncService::class)->publish($entity);
         if (array_key_exists('market_ids', $args) || array_key_exists('market_prices', $args)) {

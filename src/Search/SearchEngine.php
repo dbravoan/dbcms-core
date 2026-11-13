@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace DbCms\Core\Search;
 
+use DbCms\Core\Blocks\Components\Services\ComponentSearchBoundary;
 use DbCms\Core\Content\Contracts\EntitySchemaRegistryInterface;
 use DbCms\Core\Contracts\Services\PublicContentDiscoveryInterface;
 use DbCms\Core\Models\Market;
@@ -32,6 +33,7 @@ final class SearchEngine
         private readonly SearchSourceRegistryInterface $sources,
         private readonly EntitySchemaRegistryInterface $schemas,
         private readonly PublicContentDiscoveryInterface $discovery,
+        private readonly ComponentSearchBoundary $componentBoundaries,
     ) {}
 
     public function search(
@@ -48,6 +50,7 @@ final class SearchEngine
             return SearchResults::empty($query);
         }
 
+        $this->componentBoundaries->synchronize();
         $locale = $locale ?: (string) app()->getLocale();
         $words = $this->words($query);
 

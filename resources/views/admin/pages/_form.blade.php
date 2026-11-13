@@ -201,7 +201,7 @@
             @if(!$isBladePage)
                 <fieldset :disabled="selectedTemplate.startsWith('blade:')" x-show="!selectedTemplate.startsWith('blade:')">
                     <x-admin.form-card>
-                        <x-admin.block-manager :sections="$sectionsData" name="sections_json" :languages="$allLangs" :target="request('section')" />
+                        <x-admin.block-manager entity-type="page" :entity-id="$page?->exists ? $page->getKey() : null" :sections="$sectionsData" name="sections_json" :languages="$allLangs" :target="request('section')" />
                     </x-admin.form-card>
                 </fieldset>
             @else

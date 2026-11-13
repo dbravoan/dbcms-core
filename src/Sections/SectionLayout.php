@@ -35,7 +35,7 @@ final class SectionLayout
     /** Canonical key holding the columns of a section. */
     public const COLUMNS = 'columns';
 
-    /** Container key a block uses for its own interior CSS grid (features, pricing…). */
+    /** Container key a block uses for its own interior CSS grid (contenedores y características). */
     public const GRID_COLUMNS = 'grid_columns';
 
     /**
@@ -171,7 +171,7 @@ final class SectionLayout
                 }
             }
 
-            // Repeatable content (features, faq, pricing…) lives in `items`.
+            // Repeatable content (listas y características) lives in `items`.
             foreach ((array) ($block['items'] ?? []) as $item) {
                 if (! is_array($item)) {
                     continue;
@@ -186,20 +186,6 @@ final class SectionLayout
                 }
             }
 
-            // Carousel slides carry their own headlines.
-            foreach ((array) ($block['slides'] ?? []) as $slide) {
-                if (! is_array($slide)) {
-                    continue;
-                }
-
-                foreach (['title', 'subtitle'] as $key) {
-                    $value = $slide[$key] ?? null;
-
-                    if (is_string($value) && trim($value) !== '') {
-                        $chunks[] = trim(strip_tags($value));
-                    }
-                }
-            }
         }
 
         return implode("\n\n", array_values(array_unique($chunks)));
@@ -326,6 +312,6 @@ final class SectionLayout
 
     private static function columnId(int $index): string
     {
-        return 'col_'.$index.'_'.substr(md5((string) $index.microtime(true)), 0, 4);
+        return 'col_'.$index.'_'.substr(md5((string) $index), 0, 4);
     }
 }

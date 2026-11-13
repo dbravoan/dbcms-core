@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace DbCms\Core\Search;
 
+use DbCms\Core\Blocks\Components\Services\ComponentSearchInvalidator;
 use DbCms\Core\Models\SearchDocumentIndex;
 use DbCms\Core\Search\Contracts\SearchSourceRegistryInterface;
 use Illuminate\Support\Facades\DB;
@@ -46,6 +47,11 @@ final class SearchIndexer
     {
         if ($this->batchDepth > 0) {
             $this->pendingEntities[$type.':'.$entityId] = ['type' => $type, 'id' => $entityId];
+
+            return 0;
+        }
+        if ($type === 'block_component') {
+            app(ComponentSearchInvalidator::class)->refresh((int) $entityId);
 
             return 0;
         }

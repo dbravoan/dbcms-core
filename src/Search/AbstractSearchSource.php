@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace DbCms\Core\Search;
 
+use DbCms\Core\Search\Contracts\BlockReferenceSearchSourceInterface;
 use DbCms\Core\Search\Contracts\SearchSourceInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -16,8 +17,10 @@ use Illuminate\Database\Eloquent\Model;
  * iteration, locale filtering and incremental reindexing are shared, so every
  * module's source stays a few lines long.
  */
-abstract class AbstractSearchSource implements SearchSourceInterface
+abstract class AbstractSearchSource implements BlockReferenceSearchSourceInterface, SearchSourceInterface
 {
+    use ReadsBlockReferences;
+
     /**
      * Base query of the source: it must already constrain to indexable rows.
      *

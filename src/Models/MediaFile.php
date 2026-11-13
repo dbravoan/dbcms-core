@@ -65,6 +65,16 @@ class MediaFile extends Model
         return str_starts_with($this->mime_type, 'video/');
     }
 
+    public function getIsAudioAttribute(): bool
+    {
+        return str_starts_with($this->mime_type, 'audio/');
+    }
+
+    public function getIsAnimationAttribute(): bool
+    {
+        return strtolower(pathinfo($this->filename, PATHINFO_EXTENSION)) === 'json';
+    }
+
     public function getIsDocAttribute(): bool
     {
         return in_array($this->mime_type, [
@@ -74,6 +84,7 @@ class MediaFile extends Model
             'application/vnd.ms-excel',
             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'text/plain',
+            'text/vtt',
         ], true);
     }
 }

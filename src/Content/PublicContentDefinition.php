@@ -14,5 +14,6 @@ final readonly class PublicContentDefinition
         public ?string $slugPathMethod = null,
         public string $priority = '0.7',
         public string $changefreq = 'weekly',
+        public ?string $blockSource = null,
     ) {}
 }

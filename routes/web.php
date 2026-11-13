@@ -11,6 +11,8 @@ use DbCms\Core\Http\Controllers\Admin\Auth\LogoutPostController;
 use DbCms\Core\Http\Controllers\Admin\Auth\QuickLoginGetController;
 use DbCms\Core\Http\Controllers\Admin\BlockPackages\BlockPackagesGetController;
 use DbCms\Core\Http\Controllers\Admin\BlockPackages\BlockPackageTogglePostController;
+use DbCms\Core\Http\Controllers\Admin\Blocks\BlockPreviewPostController;
+use DbCms\Core\Http\Controllers\Admin\Blocks\BlockReferencesGetController;
 use DbCms\Core\Http\Controllers\Admin\Connections\ConnectionsGetController;
 use DbCms\Core\Http\Controllers\Admin\Connections\ConnectionsMigratePostController;
 use DbCms\Core\Http\Controllers\Admin\Connections\ConnectionsMigrationStatusGetController;
@@ -213,6 +215,8 @@ Route::prefix($adminPath)->name('admin.')->middleware([SetBackofficeLocale::clas
 
         // Generic AJAX search for the reusable searchable select component
         Route::get('/api/entity-search', EntitySearchGetController::class)->name('api.entity-search');
+        Route::post('/blocks/preview', BlockPreviewPostController::class)->name('blocks.preview');
+        Route::get('/blocks/references', BlockReferencesGetController::class)->name('blocks.references');
 
         // SEO & GEO Live Audit
         Route::middleware([CheckPermission::class.':manage:seo'])->group(function (): void {

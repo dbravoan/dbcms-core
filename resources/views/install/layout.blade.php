@@ -25,6 +25,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Instalador Web') | {{ $cmsName }}</title>
     <style>
+        [x-cloak] { display: none !important; }
         body, html {
             font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background-color: #121212;
@@ -116,7 +117,7 @@
                     [03] TABLAS
                 </div>
                 <div class="py-2 px-1 rounded border transition-colors {{ request()->routeIs('install.step4') ? 'step-pill-active' : 'border-gray-800 text-gray-500' }}">
-                    [04] MARCA & ADMIN
+                    [04] AJUSTES
                 </div>
                 <div class="py-2 px-1 rounded border transition-colors {{ request()->routeIs('install.step5') ? 'step-pill-active' : 'border-gray-800 text-gray-500' }}">
                     [05] LISTO

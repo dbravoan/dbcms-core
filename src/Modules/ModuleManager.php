@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace DbCms\Core\Modules;
 
+use DbCms\Core\Blocks\BlockTree;
 use DbCms\Core\Blocks\Contracts\BlockRegistryInterface;
 use DbCms\Core\Content\Contracts\EntitySchemaRegistryInterface;
 use DbCms\Core\Content\Pages\Models\PageSection;
@@ -472,11 +473,15 @@ class ModuleManager
 
         $schemas = app(EntitySchemaRegistryInterface::class)->all();
         $types = [];
+        $sourceTypes = [];
         $prefixes = [];
         $localization = app(LocalizationServiceInterface::class);
         foreach ($schemas as $schema) {
             if (($schema->ownerModule ?? $this->ownerOfClass($schema->model)) === $identifier) {
                 $types[] = $schema->type;
+                if ($schema->publicContent?->blockSource !== null) {
+                    $sourceTypes[] = $schema->type;
+                }
                 if ($schema->urlPrefix !== null && $schema->urlPrefix !== '') {
                     array_push($prefixes, ...$localization->getAllModuleSlugs($schema->urlPrefix));
                 }
@@ -495,7 +500,7 @@ class ModuleManager
                 $blockTypes[] = $type;
             }
         }
-        if ($blockTypes !== []) {
+        if ($blockTypes !== [] || $sourceTypes !== []) {
             foreach (PageSection::with(['page.translations', 'translations'])->get() as $section) {
                 $master = array_replace(['type' => $section->type], $section->styling_json ?? []);
                 $payloads = [$master];
@@ -503,7 +508,7 @@ class ModuleManager
                     $payloads[] = SectionLayout::resolve($master, $translation->content_json ?? []);
                 }
                 foreach ($payloads as $payload) {
-                    $type = $this->findAffectedBlock($payload, $blockTypes);
+                    $type = $this->findAffectedBlock($payload, $blockTypes, $sourceTypes);
                     if ($type !== null) {
                         $affectedPages[] = ['id' => (int) $section->page_id, 'title' => (string) ($section->page->translations->first()->title ?? 'Página #'.$section->page_id), 'reason' => 'Contiene bloque: '.$type];
                         break;
@@ -536,18 +541,19 @@ class ModuleManager
 
     /** @param array<string, mixed> $payload
      * @param  list<string>  $types
+     * @param  list<string>  $sourceTypes
      */
-    private function findAffectedBlock(array $payload, array $types): ?string
+    private function findAffectedBlock(array $payload, array $types, array $sourceTypes = []): ?string
     {
-        if (SectionLayout::columns($payload) === []) {
-            $type = $payload['type'] ?? null;
-
-            return is_string($type) && in_array($type, $types, true) ? $type : null;
-        }
-        foreach (SectionLayout::blocks($payload) as $block) {
-            $type = $this->findAffectedBlock($block, $types);
-            if ($type !== null) {
+        foreach (app(BlockTree::class)->nodes($payload) as $block) {
+            $type = (string) ($block['type'] ?? 'text');
+            if (in_array($type, $types, true) || ($type === 'collection' && in_array($block['source'] ?? null, $sourceTypes, true))) {
                 return $type;
+            }
+            foreach ((array) ($block['bindings'] ?? []) as $binding) {
+                if (is_array($binding) && in_array($binding['source'] ?? null, $sourceTypes, true)) {
+                    return $type;
+                }
             }
         }
 

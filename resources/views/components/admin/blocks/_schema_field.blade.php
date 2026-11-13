@@ -98,10 +98,10 @@
         <div class="space-y-2">
             <div class="flex items-start gap-3">
                 <div class="w-16 h-16 rounded-lg bg-[color:var(--admin-surface)] border border-[color:var(--admin-border)] flex items-center justify-center overflow-hidden shrink-0">
-                    <template x-if="{{ $model }}[{{ $keyExpr }}] && {{ $fieldVar }}.media_kind !== 'video'">
+                    <template x-if="{{ $model }}[{{ $keyExpr }}] && {{ $fieldVar }}.media_kind === 'image'">
                         <img :src="{{ $model }}[{{ $keyExpr }}]" alt="" class="w-full h-full object-contain">
                     </template>
-                    <template x-if="{{ $model }}[{{ $keyExpr }}] && {{ $fieldVar }}.media_kind === 'video'">
+                    <template x-if="{{ $model }}[{{ $keyExpr }}] && {{ $fieldVar }}.media_kind !== 'image'">
                         <i class="fa-solid fa-video text-[color:var(--admin-accent)] text-lg"></i>
                     </template>
                     <template x-if="!{{ $model }}[{{ $keyExpr }}]">
@@ -121,8 +121,8 @@
                         <button type="button"
                                 @click="openBlockMedia({{ $model }}, {{ $keyExpr }}, {{ $fieldVar }})"
                                 class="px-3 py-2 bg-[color:var(--admin-surface-raised)] text-[color:var(--admin-accent)] rounded-lg font-bold"
-                                :title="{{ $fieldVar }}.media_kind === 'video' ? 'Seleccionar vídeo' : 'Seleccionar imagen'">
-                            <i class="fa-solid" :class="{{ $fieldVar }}.media_kind === 'video' ? 'fa-film' : 'fa-image'"></i>
+                                :title="{{ $fieldVar }}.media_kind !== 'image' ? 'Seleccionar vídeo' : 'Seleccionar imagen'">
+                            <i class="fa-solid" :class="{{ $fieldVar }}.media_kind !== 'image' ? 'fa-film' : 'fa-image'"></i>
                         </button>
                         <button type="button"
                                 @click="clearBlockMedia({{ $model }}, {{ $keyExpr }})"
@@ -131,11 +131,13 @@
                             <i class="fa-solid fa-xmark"></i>
                         </button>
                     </div>
-                    <p class="text-[10px] text-[color:var(--admin-muted)]" x-show="{{ $fieldVar }}.media_kind === 'video'">Selecciona un vídeo local o pega una URL directa. YouTube se configura en el campo específico del bloque.</p>
+                    <p class="text-[10px] text-[color:var(--admin-muted)]" x-show="{{ $fieldVar }}.media_kind !== 'image'">Selecciona un vídeo local o pega una URL directa. YouTube se configura en el campo específico del bloque.</p>
                 </div>
             </div>
         </div>
     </template>
+
+    <template x-if="['blocks', 'object', 'repeater'].includes({{ $fieldVar }}.type)"><div data-schema-editor x-effect="mountSchemaField($el, {{ $model }}, {{ $keyExpr }}, {{ $fieldVar }})"></div></template>
 
     <span :id="{!! $hintExpression !!}"
           x-show="{{ $fieldVar }}.description"

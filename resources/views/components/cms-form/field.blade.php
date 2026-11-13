@@ -8,10 +8,18 @@
         'email' => 'email',
         'tel' => 'tel',
         'number' => 'number',
+        'date' => 'date',
+        'time' => 'time',
+        'url' => 'url',
+        'hidden' => 'hidden',
+        'file' => 'file',
         default => 'text',
     };
 @endphp
 
+@if($type === 'hidden')
+    <input type="hidden" name="{{ $field->key }}" value="{{ $old ?? $field->placeholder }}">
+@else
 <div class="{{ trim(($wrapperClass ?? '').' space-y-1') }}">
     @if($type === 'checkbox')
         <div class="pt-1">
@@ -66,7 +74,7 @@
             <input type="{{ $inputType }}"
                    id="{{ $id }}"
                    name="{{ $field->key }}"
-                   value="{{ $old }}"
+                   @if($type !== 'file') value="{{ $old }}" @endif
                    {{ $required ? 'required' : '' }}
                    placeholder="{{ $field->placeholder }}"
                    class="{{ $ui['input'] }}">
@@ -77,3 +85,5 @@
         <p class="{{ $ui['error'] }}">{{ $errors->first($field->key) }}</p>
     @endif
 </div>
+
+@endif

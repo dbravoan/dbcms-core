@@ -13,7 +13,7 @@ final readonly class EntityMutationData
     public static function fromForm(array $input): self
     {
         $attributes = $input;
-        unset($attributes['translations'], $attributes['market_ids'], $attributes['sections_json'], $attributes['sections'], $attributes['user_id'], $attributes['audit_action'], $attributes['audit_notes']);
+        unset($attributes['translations'], $attributes['market_ids'], $attributes['sections_json'], $attributes['sections_order_locale'], $attributes['sections'], $attributes['user_id'], $attributes['audit_action'], $attributes['audit_notes']);
         $args = ['attributes' => $attributes, 'translations' => (array) ($input['translations'] ?? [])];
         if (in_array($input['audit_action'] ?? null, ['draft', 'submit_for_review'], true)) {
             $args['audit_action'] = $input['audit_action'];
@@ -24,6 +24,9 @@ final readonly class EntityMutationData
         }
         if (is_string($input['sections_json'] ?? null)) {
             $args['sections_json'] = $input['sections_json'];
+        }
+        if (array_key_exists('sections_order_locale', $input)) {
+            $args['sections_order_locale'] = $input['sections_order_locale'];
         }
 
         return new self($args);

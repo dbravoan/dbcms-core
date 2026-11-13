@@ -237,7 +237,7 @@ final class CmsActionCatalog
             new ActionTool(
                 toolName: 'cms_content_sections_get',
                 toolDescription: 'MCP: reads the blocks of a sectionable entity (page, post, product) with their per-locale content and styling',
-                toolProperties: $entity,
+                toolProperties: $entity + ['view' => ['type' => 'string', 'enum' => ['detail', 'summary']], 'node_id' => ['type' => ['string', 'integer']], 'locale' => ['type' => 'string']],
                 toolRequired: ['type', 'id'],
                 toolPermission: null,
                 toolAbility: ActionTool::ABILITY_READ,
@@ -249,11 +249,22 @@ final class CmsActionCatalog
                 toolDescription: 'MCP: replaces the blocks through the entity publication workflow. Accepts the block-manager shape (locale → list of blocks); each block carries "type" plus its content',
                 toolProperties: $entity + [
                     'sections' => ['type' => ['array', 'object'], 'description' => 'Locale-keyed lists of blocks; an empty object or array clears the sections'],
+                    'order_locale' => ['type' => 'string', 'description' => 'Active language in sections whose root sequence sets shared order. Defaults to the active default language, then a deterministic available fallback.'],
                 ],
                 toolRequired: ['type', 'id', 'sections'],
                 toolPermission: null,
                 toolAbility: ActionTool::ABILITY_WRITE,
                 handler: static fn (array $args): array => $service->sectionsSync($args),
+                permissionResolver: static fn (array $args): ?string => empty($args['type']) ? null : app(EntityReadService::class)->schemaFor((string) $args['type'])->permission,
+            ),
+            new ActionTool(
+                toolName: 'cms_content_sections_patch',
+                toolDescription: 'Edits stable block nodes in one locale using update/insert/remove/move operations and an expected version from cms_content_sections_get. Returns only the new version and outcome. Uses the same publication workflow.',
+                toolProperties: $entity + ['locale' => ['type' => 'string'], 'version' => ['type' => 'string', 'minLength' => 64, 'maxLength' => 64], 'operations' => ['type' => 'array', 'maxItems' => 100, 'items' => ['type' => 'object', 'properties' => ['op' => ['type' => 'string', 'enum' => ['update', 'insert', 'remove', 'move']], 'node_id' => ['type' => ['string', 'integer']], 'parent_id' => ['type' => ['string', 'integer', 'null']], 'slot' => ['type' => 'string'], 'index' => ['type' => 'integer', 'minimum' => 0], 'values' => ['type' => 'object'], 'node' => ['type' => 'object']], 'required' => ['op']]]],
+                toolRequired: ['type', 'id', 'locale', 'version', 'operations'],
+                toolPermission: null,
+                toolAbility: ActionTool::ABILITY_WRITE,
+                handler: static fn (array $args): array => $service->sectionsPatch($args),
                 permissionResolver: static fn (array $args): ?string => empty($args['type']) ? null : app(EntityReadService::class)->schemaFor((string) $args['type'])->permission,
             ),
         ];

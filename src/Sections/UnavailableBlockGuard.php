@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace DbCms\Core\Sections;
 
+use DbCms\Core\Blocks\BlockTree;
 use DbCms\Core\Blocks\Contracts\BlockRegistryInterface;
 use Illuminate\Validation\ValidationException;
 
@@ -17,26 +18,32 @@ final class UnavailableBlockGuard
      * @param  array<string,mixed>  $stored
      * @return array<string,mixed>
      */
-    public function reconcile(array $incoming, array $stored = []): array
+    public function reconcile(array $incoming, array $stored = [], bool $nested = false): array
     {
         $incoming = $this->clean($incoming);
         $stored = $this->clean($stored);
         $columns = SectionLayout::rawColumns($incoming);
         $oldColumns = SectionLayout::rawColumns($stored);
         $oldType = (string) ($stored['type'] ?? 'text');
-        if ($stored !== [] && $oldColumns === [] && ! $this->blocks->isAvailable($oldType)) {
+        if ($stored !== [] && (! app(BlockTree::class)->supports($stored) || (($nested || $oldColumns === []) && ! $this->blocks->isAvailable($oldType)))) {
             if ($incoming !== $stored) {
                 $this->invalid($oldType);
             }
 
             return $stored;
         }
+        if (! app(BlockTree::class)->supports($incoming) || ($nested && ! $this->blocks->isAvailable((string) ($incoming['type'] ?? 'text')))) {
+            $this->invalid((string) ($incoming['type'] ?? 'text'));
+        }
         SectionAppearance::validate($incoming);
         if ($columns === [] && $oldColumns === []) {
             $type = (string) ($incoming['type'] ?? 'text');
+            if ($this->blocks->isAvailable($type)) {
+                $incoming = $this->reconcileFields($this->blocks->get($type)?->getEditorSchema() ?? [], $incoming, $stored);
+            }
             $this->blocks->validate($type, $incoming);
 
-            return $incoming;
+            return app(BlockTree::class)->identify($incoming);
         }
         foreach ($columns as $i => &$column) {
             SectionAppearance::validate((array) ($column['style'] ?? []));
@@ -47,7 +54,7 @@ final class UnavailableBlockGuard
                 if (! is_array($child)) {
                     $this->invalid('invalid');
                 }
-                $child = $this->reconcile($child, $this->takeMatch($oldChildren, $child, $j));
+                $child = $this->reconcile($child, $this->takeMatch($oldChildren, $child, $j), true);
             }
             unset($child);
             foreach ($oldChildren as $j => $oldChild) {
@@ -76,6 +83,9 @@ final class UnavailableBlockGuard
      * @param array<string,mixed> $payload */
     public function containsUnavailable(array $payload): bool
     {
+        if (! app(BlockTree::class)->supports($payload) || ! $this->blocks->isAvailable((string) ($payload['type'] ?? 'text'))) {
+            return true;
+        }
         foreach (SectionLayout::blocks($payload) as $block) {
             if (SectionLayout::rawColumns($block) !== []) {
                 if ($this->containsUnavailable($block)) {
@@ -84,8 +94,86 @@ final class UnavailableBlockGuard
 
                 continue;
             }
-            if (! $this->blocks->isAvailable((string) ($block['type'] ?? 'text'))) {
+            if (! app(BlockTree::class)->supports($block) || ! $this->blocks->isAvailable((string) ($block['type'] ?? 'text'))) {
                 return true;
+            }
+            foreach (app(BlockTree::class)->slots($block) as $slot) {
+                foreach ($slot['nodes'] as $child) {
+                    if ($this->containsUnavailable($child)) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /** @param array<string,array<string,mixed>> $schema
+     * @param array<string,mixed> $incoming
+     * @param array<string,mixed> $stored
+     * @return array<string,mixed> */
+    private function reconcileFields(array $schema, array $incoming, array $stored): array
+    {
+        foreach ($schema as $key => $field) {
+            $type = $field['type'] ?? null;
+            if ($type === 'blocks') {
+                $children = $incoming[$key] ?? [];
+                if (! is_array($children) || ! array_is_list($children)) {
+                    $this->invalid('invalid slot');
+                }
+                $old = (array) ($stored[$key] ?? []);
+                foreach ($children as $index => &$child) {
+                    if (! is_array($child)) {
+                        $this->invalid('invalid child');
+                    }
+                    $child = $this->reconcile($child, $this->takeMatch($old, $child, $index), true);
+                }
+                unset($child);
+                foreach ($old as $index => $child) {
+                    if (is_array($child) && $this->containsUnavailable($child)) {
+                        array_splice($children, min((int) $index, count($children)), 0, [$child]);
+                    }
+                }
+                $incoming[$key] = $children;
+            } elseif ($type === 'repeater') {
+                $rows = (array) ($incoming[$key] ?? []);
+                $old = (array) ($stored[$key] ?? []);
+                foreach ($rows as $index => &$row) {
+                    if (is_array($row)) {
+                        $row = $this->reconcileFields((array) ($field['fields'] ?? []), $row, $this->takeMatch($old, $row, $index));
+                    }
+                }
+                unset($row);
+                foreach ($old as $index => $row) {
+                    if (is_array($row) && $this->unavailableFields((array) ($field['fields'] ?? []), $row)) {
+                        array_splice($rows, min((int) $index, count($rows)), 0, [$row]);
+                    }
+                }
+                $incoming[$key] = $rows;
+            } elseif ($type === 'object') {
+                $incoming[$key] = $this->reconcileFields((array) ($field['fields'] ?? []), (array) ($incoming[$key] ?? []), (array) ($stored[$key] ?? []));
+            }
+        }
+
+        return $incoming;
+    }
+
+    /** @param array<string,array<string,mixed>> $schema
+     * @param array<string,mixed> $payload */
+    private function unavailableFields(array $schema, array $payload): bool
+    {
+        foreach ($schema as $key => $field) {
+            foreach ((array) ($payload[$key] ?? []) as $child) {
+                if (! is_array($child)) {
+                    continue;
+                }
+                if (($field['type'] ?? null) === 'blocks' && $this->containsUnavailable($child)) {
+                    return true;
+                }
+                if (($field['type'] ?? null) === 'repeater' && $this->unavailableFields((array) ($field['fields'] ?? []), $child)) {
+                    return true;
+                }
             }
         }
 

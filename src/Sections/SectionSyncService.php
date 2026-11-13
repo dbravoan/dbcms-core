@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace DbCms\Core\Sections;
 
+use DbCms\Core\Blocks\BlockBindings;
 use DbCms\Core\Blocks\BlockCatalogService;
+use DbCms\Core\Blocks\BlockTree;
 use DbCms\Core\Contracts\Sectionable;
 use DbCms\Core\Contracts\SectionContentVisibility;
 use DbCms\Core\Models\Language;
@@ -43,7 +45,7 @@ class SectionSyncService
         $entity->unsetRelation('publishedSections');
     }
 
-    public function sync(Model $entity, string $sectionsJson, string $status = 'published'): void
+    public function sync(Model $entity, string $sectionsJson, string $status = 'published', ?string $orderLocale = null): void
     {
         if ($entity instanceof SectionContentVisibility && ! $entity->usesSectionContent()) {
             throw ValidationException::withMessages(['sections_json' => 'This page uses a Blade view; its preserved sections cannot be edited.']);
@@ -56,11 +58,17 @@ class SectionSyncService
         if (! is_array($decoded)) {
             throw ValidationException::withMessages(['sections_json' => 'Sections must be a locale-keyed object.']);
         }
+        app(BlockTree::class)->assertLimits($decoded);
+        foreach ($decoded as $roots) {
+            if (is_array($roots) && array_is_list($roots)) {
+                app(BlockTree::class)->assertUniqueIds($roots);
+            }
+        }
 
         $status = in_array($status, ['draft', 'published'], true) ? $status : 'published';
         $languages = $this->activeLocales();
 
-        DB::transaction(function () use ($entity, $decoded, $languages, $status): void {
+        DB::transaction(function () use ($entity, $decoded, $languages, $status, $orderLocale): void {
             $sectionModel = $entity->sectionModelClass();
             $translationModel = $entity->sectionTranslationModelClass();
             $entityFk = $entity->sectionForeignKey();
@@ -70,7 +78,7 @@ class SectionSyncService
             $existing = $sectionModel::query()->where($entityFk, $entity->getKey())->lockForUpdate()->get()->keyBy('id');
             $entity->unsetRelation('sections');
             $storedPayload = app(SectionEditorService::class)->payload($entity);
-            $plan = $this->plan($decoded, $languages);
+            $plan = $this->plan($decoded, $languages, $orderLocale);
             $plannedIds = [];
             foreach ($plan as &$item) {
                 $id = $this->identityHint($item['master']['id'] ?? null);
@@ -172,31 +180,27 @@ class SectionSyncService
     private function validateReferences(Model $entity, array $payload, string $locale): void
     {
         $catalog = app(BlockCatalogService::class);
-        foreach (SectionLayout::blocks($payload) as $block) {
-            if (SectionLayout::rawColumns($block) !== []) {
-                $this->validateReferences($entity, $block, $locale);
-
-                continue;
+        $bindings = app(BlockBindings::class);
+        $nodes = app(BlockTree::class)->nodes($payload);
+        $needsBindings = $bindings->requiresContext($payload);
+        $referenced = array_values(array_filter($nodes, fn (array $block): bool => $catalog->requiresReferenceContext((string) ($block['type'] ?? 'text'))));
+        if (! $needsBindings && $referenced === []) {
+            return;
+        }
+        $markets = Market::query()->where('is_active', true)
+            ->whereHas('languages', static fn ($languages) => $languages->where('code', $locale)->where('is_active', true));
+        if (method_exists($entity, 'markets')) {
+            $relation = $entity->markets();
+            if ($relation instanceof BelongsToMany && $relation->exists()) {
+                $markets->whereIn('id', $relation->pluck('markets.id')->all());
             }
-            $type = (string) ($block['type'] ?? 'text');
-            if (! $catalog->requiresReferenceContext($type)) {
-                continue;
-            }
-            $markets = Market::query()->where('is_active', true)
-                ->whereHas('languages', static fn ($languages) => $languages->where('code', $locale)->where('is_active', true));
-            if (method_exists($entity, 'markets')) {
-                $relation = $entity->markets();
-                if ($relation instanceof BelongsToMany && $relation->exists()) {
-                    $markets->whereIn('id', $relation->pluck('markets.id')->all());
-                }
-            }
-            $destinations = $markets->get();
-            if ($destinations->isEmpty()) {
-                throw ValidationException::withMessages(['sections_json' => 'Dynamic blocks require an active market for their language.']);
-            }
-            foreach ($destinations as $market) {
-                $catalog->validateReferences($type, $block, $market, $locale);
-            }
+        }
+        $destinations = $markets->get();
+        if ($destinations->isEmpty()) {
+            throw ValidationException::withMessages(['sections_json' => 'Dynamic blocks require an active market for their language.']);
+        }
+        foreach ($destinations as $market) {
+            $catalog->validateTree($payload, $market, $locale);
         }
     }
 
@@ -219,7 +223,7 @@ class SectionSyncService
      */
     private function activeLocales(): array
     {
-        $locales = Language::query()->where('is_active', true)->pluck('code')->all();
+        $locales = Language::query()->where('is_active', true)->orderByDesc('is_default')->orderBy('code')->pluck('code')->all();
 
         if ($locales === []) {
             return ['es'];
@@ -235,7 +239,7 @@ class SectionSyncService
      * @param  list<string>  $languages
      * @return list<array{master: array<string, mixed>, contents: array<string, array<string, mixed>>}>
      */
-    private function plan(array $decoded, array $languages): array
+    private function plan(array $decoded, array $languages, ?string $orderLocale): array
     {
         if ($decoded !== [] && array_is_list($decoded)) {
             throw ValidationException::withMessages(['sections_json' => 'Sections must be keyed by locale.']);
@@ -249,29 +253,28 @@ class SectionSyncService
             }
         }
 
-        $plan = [];
-
-        $max = 0;
-        foreach ($decoded as $list) {
-            $max = max($max, count($list));
+        if ($orderLocale !== null && (! in_array($orderLocale, $languages, true) || ($decoded !== [] && ! array_key_exists($orderLocale, $decoded)))) {
+            throw ValidationException::withMessages(['sections_order_locale' => 'The ordering locale must be an active language included in the sections payload.']);
         }
 
-        for ($index = 0; $index < $max; $index++) {
-            $master = $this->firstBlockAt($decoded, $index);
-            if ($master === null) {
-                continue;
-            }
-
-            $contents = [];
-            foreach ($languages as $locale) {
-                $content = $this->blockAt($decoded[$locale] ?? null, $index);
-                if ($content !== null) {
-                    $contents[$locale] = $content;
-                }
-            }
-
-            $plan[] = ['master' => $master, 'contents' => $contents];
+        $groups = [];
+        // Shared section order follows an explicit edited locale, otherwise the
+        // active default language and a deterministic fallback; JSON key order
+        // never decides the identity or visual order of translated sections.
+        $locales = array_values(array_filter($languages, static fn (string $locale): bool => array_key_exists($locale, $decoded)));
+        if ($orderLocale !== null && array_key_exists($orderLocale, $decoded)) {
+            $locales = [$orderLocale, ...array_values(array_diff($locales, [$orderLocale]))];
         }
+        foreach ($locales as $locale) {
+            foreach ($decoded[$locale] as $index => $content) {
+                $identity = $content['id'] ?? null;
+                $key = (is_string($identity) && $identity !== '') || (is_int($identity) && $identity > 0)
+                    ? 'identity:'.$identity : 'position:'.$index;
+                $groups[$key] ??= ['master' => $content, 'contents' => []];
+                $groups[$key]['contents'][$locale] = $content;
+            }
+        }
+        $plan = array_values($groups);
 
         return $plan;
     }
@@ -300,41 +303,5 @@ class SectionSyncService
                 $this->validateBlockStructure($child);
             }
         }
-    }
-
-    /**
-     * @param  array<mixed>  $decoded
-     * @return array<string, mixed>|null
-     */
-    private function firstBlockAt(array $decoded, int $index): ?array
-    {
-        $preferred = $this->blockAt($decoded['es'] ?? null, $index);
-        if ($preferred !== null) {
-            return $preferred;
-        }
-
-        foreach ($decoded as $list) {
-            $block = $this->blockAt($list, $index);
-            if ($block !== null) {
-                return $block;
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * @return array<string, mixed>|null
-     */
-    private function blockAt(mixed $list, int $index): ?array
-    {
-        if (! is_array($list) || ! isset($list[$index]) || ! is_array($list[$index])) {
-            return null;
-        }
-
-        /** @var array<string, mixed> $block */
-        $block = $list[$index];
-
-        return $block;
     }
 }

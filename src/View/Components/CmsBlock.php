@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace DbCms\Core\View\Components;
 
+use DbCms\Core\Blocks\BlockCatalogService;
+use DbCms\Core\Blocks\BlockRenderer;
 use DbCms\Core\Blocks\Contracts\BlockRegistryInterface;
 use DbCms\Core\Models\Market;
 use Illuminate\Support\HtmlString;
@@ -27,7 +29,8 @@ final class CmsBlock extends Component
             }
             if ($market->is_active && $market->languages()->where('code', $locale)->where('is_active', true)->exists()) {
                 $blocks->validate($this->type, $this->payload);
-                $html = $blocks->render($this->type, $this->payload, $market, $locale);
+                app(BlockCatalogService::class)->validateTree(array_replace($this->payload, ['type' => $this->type]), $market, $locale);
+                $html = app(BlockRenderer::class)->render($this->type, $this->payload, $market, $locale);
             }
         }
 

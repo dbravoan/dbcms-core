@@ -93,7 +93,8 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(MaintenanceModeInterface::class, NullMaintenanceModeService::class);
         $this->app->bind(SearchAnalyticsInterface::class, NoSearchAnalytics::class);
         $this->app->bind(MenuEditorServiceInterface::class, MenuEditorService::class);
-        $this->app->bind(PublishedSectionTextInterface::class, PublishedSectionTextService::class);
+        $this->app->scoped(PublishedSectionTextService::class);
+        $this->app->bind(PublishedSectionTextInterface::class, fn () => $this->app->make(PublishedSectionTextService::class));
         $this->app->bind(ModuleSettingsAdministrationInterface::class, ModuleSettingsAdministrationService::class);
         $this->app->singleton(ModuleSettingsExtensionRegistry::class);
         $this->app->bind(InstallationEnvironmentServiceInterface::class, InstallationEnvironmentService::class);

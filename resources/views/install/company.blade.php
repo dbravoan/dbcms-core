@@ -1,34 +1,34 @@
-<fieldset class="p-5 border border-gray-700 rounded space-y-4">
-    <legend class="font-bold">Responsable y privacidad</legend>
-    <p class="text-sm">Estos datos se publicarán en el aviso legal y la política de privacidad. Describe los tratamientos reales, sus destinatarios y su conservación.</p>
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        @foreach(['company_name' => 'Nombre o razón social', 'address' => 'Domicilio completo', 'country' => 'País (ISO, por ejemplo ES)', 'contact_email' => 'Email de contacto', 'privacy_email' => 'Email para ejercer derechos', 'activity' => 'Actividad', 'hosting_provider' => 'Proveedor de alojamiento', 'hosting_country' => 'País del alojamiento'] as $key => $label)
-            <label class="block text-sm">{{ $label }}<input name="company[{{ $key }}]" required value="{{ old('company.'.$key) }}" class="block w-full bg-gray-900 border border-gray-600 rounded p-2"></label>
-        @endforeach
-        @foreach(['tax_id' => 'Identificación fiscal (obligatoria para actividad económica)', 'commercial_registry' => 'Inscripción registral, si corresponde', 'dpo_contact' => 'Delegado de protección de datos, si corresponde'] as $key => $label)
-            <label class="block text-sm">{{ $label }}<input name="company[{{ $key }}]" value="{{ old('company.'.$key) }}" class="block w-full bg-gray-900 border border-gray-600 rounded p-2"></label>
+<section data-install-step="controller" x-show="step === 2" class="space-y-4" aria-labelledby="install-controller-heading"
+         x-data="{ commercialActivity: @js((bool) old('company.commercial_activity', false)), registryRequired: @js((bool) old('company.registry_required', false)), dpoRequired: @js((bool) old('company.dpo_required', false)) }">
+    <h3 id="install-controller-heading" tabindex="-1" class="text-lg font-bold text-white">Titular del sitio</h3>
+    <p class="text-sm text-gray-400">Puede ser una persona, un profesional o una empresa. Estos datos aparecerán en las páginas legales del sitio.</p>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <label for="install-company-name" class="block text-sm">Nombre completo o razón social
+            <input id="install-company-name" name="company[company_name]" required maxlength="180" value="{{ old('company.company_name') }}" class="block w-full bg-gray-900 border border-gray-600 rounded p-2 mt-1">
+        </label>
+        <label for="install-tax-id" class="block text-sm">NIF / CIF
+            <input id="install-tax-id" name="company[tax_id]" :required="commercialActivity" maxlength="50" value="{{ old('company.tax_id') }}" aria-describedby="install-tax-help" class="block w-full bg-gray-900 border border-gray-600 rounded p-2 mt-1">
+            <span id="install-tax-help" class="block text-xs text-gray-400 mt-1">Obligatorio si realizas actividad económica. No necesitas aportar datos registrales si no te corresponden.</span>
+        </label>
+    </div>
+    <label class="flex gap-2 text-sm items-start"><input type="hidden" name="company[commercial_activity]" value="0"><input type="checkbox" name="company[commercial_activity]" value="1" x-model="commercialActivity" @checked(old('company.commercial_activity')) class="mt-1">Realizo actividad económica con este sitio.</label>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        @foreach(['activity' => ['Descripción del sitio o actividad', 'text', 255], 'address' => ['Dirección del titular', 'text', 255], 'country' => ['País del titular (código ISO, por ejemplo ES)', 'text', 2], 'contact_email' => ['Correo de contacto', 'email', 255], 'privacy_email' => ['Correo para ejercer derechos', 'email', 255]] as $key => [$label, $type, $max])
+            <label for="install-{{ $key }}" class="block text-sm">{{ $label }}
+                <input id="install-{{ $key }}" type="{{ $type }}" name="company[{{ $key }}]" required maxlength="{{ $max }}" @if($key === 'country') minlength="2" pattern="[A-Z]{2}" @endif value="{{ old('company.'.$key) }}" class="block w-full bg-gray-900 border border-gray-600 rounded p-2 mt-1">
+            </label>
         @endforeach
     </div>
-    @foreach(['commercial_activity' => 'Realizo actividad económica (requiere identificación fiscal)', 'registry_required' => 'La inscripción registral es obligatoria (rellenar los datos)', 'dpo_required' => 'Debo designar un delegado de protección de datos (rellenar contacto)'] as $key => $label)
-        <label class="flex gap-2 text-sm"><input type="hidden" name="company[{{ $key }}]" value="0"><input type="checkbox" name="company[{{ $key }}]" value="1" @checked(old('company.'.$key))>{{ $label }}</label>
-    @endforeach
-    <div x-data="{ rows: @js(old('company.processing', [['owner' => 'core']])) }" class="space-y-5">
-        <template x-for="(row, index) in rows" :key="index">
-            <fieldset class="border border-gray-700 p-4 space-y-2">
-                <label class="block text-sm">Tratamiento (core (obligatorio), accounts, blog_comments, forms, shop_inquiries, shop_orders u otro identificador)
-                    <input :name="`company[processing][${index}][owner]`" x-model="row.owner" required class="block w-full bg-gray-900 rounded p-2">
-                </label>
-                @foreach(['purpose' => 'Finalidad', 'legal_basis' => 'Base jurídica', 'data' => 'Datos tratados', 'retention' => 'Plazo o criterio de conservación', 'recipients' => 'Destinatarios y proveedores', 'transfers' => 'Transferencias internacionales y garantías, o ausencia de ellas'] as $key => $label)
-                    <label class="block text-sm">{{ $label }}<textarea :name="`company[processing][${index}][{{ $key }}]`" x-model="row.{{ $key }}" required rows="2" class="block w-full bg-gray-900 rounded p-2"></textarea></label>
-                @endforeach
-                <label class="block text-sm">Conservación automática en días (obligatorio para core, blog_comments, forms y shop_inquiries; desde la recepción, o la última actividad para pedidos)
-                    <input type="number" min="1" max="36500" :name="`company[processing][${index}][retention_days]`" x-model="row.retention_days" class="block w-full bg-gray-900 rounded p-2">
-                </label>
-                <label class="flex gap-2 text-sm"><input type="checkbox" :name="`company[processing][${index}][manual_review]`" value="1" x-model="row.manual_review">Este tratamiento admite revisión documentada del criterio de conservación antes de suprimir datos (obligatoria para accounts; no indiques días automáticos para cuentas).</label>
-                <button type="button" x-show="rows.length > 1" @click="rows.splice(index, 1)">Quitar tratamiento</button>
-            </fieldset>
-        </template>
-        <button type="button" @click="rows.push({owner: ''})" class="underline">Añadir tratamiento</button>
-    </div>
-    <label class="flex gap-2 text-sm"><input type="checkbox" name="company[reviewed]" value="1" required>He revisado que estos datos y tratamientos corresponden a esta instalación.</label>
-</fieldset>
+    <p class="text-xs text-gray-400">Puedes utilizar el mismo correo para contacto y para ejercer derechos.</p>
+    <details class="border border-gray-700 rounded-lg p-4 space-y-3" @if(old('company.registry_required') || old('company.dpo_required') || old('company.commercial_registry') || old('company.dpo_contact')) open @endif>
+        <summary class="cursor-pointer text-sm font-bold">Información adicional, si corresponde</summary>
+        <label class="flex gap-2 text-sm items-start"><input type="hidden" name="company[registry_required]" value="0"><input type="checkbox" name="company[registry_required]" value="1" x-model="registryRequired" @checked(old('company.registry_required')) class="mt-1">Debo indicar una inscripción registral.</label>
+        <label for="install-registry" x-show="registryRequired" class="block text-sm">Datos de inscripción registral
+            <input id="install-registry" name="company[commercial_registry]" :required="registryRequired" maxlength="500" value="{{ old('company.commercial_registry') }}" class="block w-full bg-gray-900 border border-gray-600 rounded p-2 mt-1">
+        </label>
+        <label class="flex gap-2 text-sm items-start"><input type="hidden" name="company[dpo_required]" value="0"><input type="checkbox" name="company[dpo_required]" value="1" x-model="dpoRequired" @checked(old('company.dpo_required')) class="mt-1">Debo designar un delegado de protección de datos.</label>
+        <label for="install-dpo" x-show="dpoRequired" class="block text-sm">Contacto del delegado de protección de datos
+            <input id="install-dpo" name="company[dpo_contact]" :required="dpoRequired" maxlength="500" value="{{ old('company.dpo_contact') }}" class="block w-full bg-gray-900 border border-gray-600 rounded p-2 mt-1">
+        </label>
+    </details>
+</section>

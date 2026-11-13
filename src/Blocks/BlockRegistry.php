@@ -9,7 +9,9 @@ use DbCms\Core\Blocks\Contracts\BlockRegistryInterface;
 use DbCms\Core\Blocks\Contracts\BlockTypeInterface;
 use DbCms\Core\Models\Market;
 use DbCms\Core\Modules\ModuleManager;
+use DbCms\Core\Sections\SectionAppearance;
 use DbCms\Core\Services\Content\SafeContentRenderer;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -22,6 +24,12 @@ final class BlockRegistry implements BlockRegistryInterface
 
     /** @var array<string,string> */
     private array $packages = [];
+
+    /** @var array<string,bool>|null */
+    private ?array $renderPackages = null;
+
+    /** @var array<string,bool> */
+    private array $renderModules = [];
 
     public function __construct(private readonly ModuleManager $modules, private readonly BlockPackageManager $packageManager) {}
 
@@ -53,17 +61,17 @@ final class BlockRegistry implements BlockRegistryInterface
     public function isAvailable(string $type): bool
     {
         $block = $this->blocks[$type] ?? null;
-        if ($block === null || (isset($this->packages[$type]) && ! $this->packageManager->isEnabled($this->packages[$type]))) {
+        if ($block === null || (isset($this->packages[$type]) && ! ($this->renderPackages !== null ? ($this->renderPackages[$this->packages[$type]] ?? false) : $this->packageManager->isEnabled($this->packages[$type])))) {
             return false;
         }
         $module = $block->getRequiredModule();
 
-        return $module === null || $this->modules->isModuleEnabled($module);
+        return $module === null || $this->moduleAvailable($module);
     }
 
     public function getActiveBlocks(): array
     {
-        $packages = $this->packageManager->availability();
+        $packages = $this->renderPackages ?? $this->packageManager->availability();
         $modules = [];
 
         return array_filter($this->blocks, function (BlockTypeInterface $block) use ($packages, &$modules): bool {
@@ -76,8 +84,42 @@ final class BlockRegistry implements BlockRegistryInterface
                 return true;
             }
 
-            return $modules[$module] ??= $this->modules->isModuleEnabled($module);
+            return $modules[$module] ??= $this->moduleAvailable($module);
         });
+    }
+
+    /** A read-only render operation shares availability; the next root always re-reads it.
+     * @template TResult
+     *
+     * @param Closure():TResult $render
+     * @return TResult */
+    public function withinAvailability(Closure $render): mixed
+    {
+        if ($this->renderPackages !== null) {
+            return $render();
+        }
+        $this->renderPackages = $this->packageManager->availability();
+        try {
+            return $render();
+        } finally {
+            $this->invalidateAvailability();
+        }
+    }
+
+    /** Availability mutation events may also invalidate an operation in progress. */
+    public function invalidateAvailability(): void
+    {
+        $this->renderPackages = null;
+        $this->renderModules = [];
+    }
+
+    private function moduleAvailable(string $module): bool
+    {
+        if ($this->renderPackages === null) {
+            return $this->modules->isModuleEnabled($module);
+        }
+
+        return $this->renderModules[$module] ??= $this->modules->isModuleEnabled($module);
     }
 
     public function getDynamicDataPayloads(): array
@@ -96,6 +138,11 @@ final class BlockRegistry implements BlockRegistryInterface
             return '';
         }
 
+        if (! app(BlockTree::class)->supports(['type' => $type] + $payload)) {
+            Log::warning('Formato de bloque retirado; requiere conversión explícita.', ['type' => $type, 'node_id' => $payload['id'] ?? null]);
+
+            return '';
+        }
         $payload = $this->safeUrlPayload($payload, $this->blocks[$type]->getEditorSchema());
 
         return $this->blocks[$type]->render($payload, $market, $locale);
@@ -103,10 +150,37 @@ final class BlockRegistry implements BlockRegistryInterface
 
     public function validate(string $type, array $payload): void
     {
+        $this->withinAvailability(function () use ($type, $payload): void {
+            $this->validatePayload($type, $payload);
+        });
+    }
+
+    /** @param array<string,mixed> $payload */
+    private function validatePayload(string $type, array $payload): void
+    {
         if (! $this->isAvailable($type)) {
             throw ValidationException::withMessages(['sections_json' => 'This block is unavailable: '.$type]);
         }
-        Validator::make($payload, $this->validationRules($this->blocks[$type]->getEditorSchema()))->validate();
+        $tree = app(BlockTree::class);
+        $tree->assertLimits($payload);
+        foreach ($tree->nodes(array_replace($payload, ['type' => $type])) as $node) {
+            $nodeType = (string) ($node['type'] ?? 'text');
+            if (! $this->isAvailable($nodeType)) {
+                continue; // The shared writer reconciles stored unavailable instances first.
+            }
+            if (! $tree->supports($node)) {
+                throw ValidationException::withMessages(['sections_json' => 'Formato retirado de '.$nodeType.'. Conserva el contenido y solicita una conversión explícita.']);
+            }
+            Validator::make($node, $this->validationRules($this->blocks[$nodeType]->getEditorSchema()) + [
+                'bindings' => ['nullable', 'array'],
+                'bindings.*' => ['array:source,field,id'],
+                'bindings.*.source' => ['required', 'string', 'max:100'],
+                'bindings.*.field' => ['required', 'string', 'max:100'],
+                'bindings.*.id' => ['nullable', 'integer', 'min:1'],
+            ])->validate();
+            SectionAppearance::validate($node);
+            BlockStyle::validate((array) ($node['appearance'] ?? []));
+        }
     }
 
     /**
@@ -123,7 +197,7 @@ final class BlockRegistry implements BlockRegistryInterface
                 'integer' => ['nullable', 'integer'],
                 'select' => ['nullable', Rule::in(array_is_list((array) ($field['options'] ?? [])) ? (array) ($field['options'] ?? []) : array_keys((array) ($field['options'] ?? [])))],
                 'boolean' => ['nullable', 'boolean'],
-                'json', 'array', 'list', 'repeater' => ['nullable', 'array'],
+                'json', 'array', 'list', 'repeater', 'object', 'blocks' => ['nullable', 'array'],
                 'media' => ['nullable', 'string'],
                 default => ['nullable', 'string'],
             };
@@ -143,6 +217,9 @@ final class BlockRegistry implements BlockRegistryInterface
             if (($field['type'] ?? null) === 'repeater') {
                 $rules[$path.'.*'] = ['array'];
                 $rules = array_replace($rules, $this->validationRules((array) ($field['fields'] ?? []), $path.'.*.'));
+            }
+            if (($field['type'] ?? null) === 'object') {
+                $rules = array_replace($rules, $this->validationRules((array) ($field['fields'] ?? []), $path.'.'));
             }
         }
 

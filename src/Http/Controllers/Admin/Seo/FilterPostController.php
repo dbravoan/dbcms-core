@@ -39,6 +39,7 @@ final class FilterPostController extends Controller
             'meta_description' => 'nullable|string|max:500',
             'is_indexable' => 'nullable|boolean',
             'intro_blocks_json' => 'nullable|string',
+            'sections_order_locale' => 'nullable|string|max:20',
         ]);
 
         $marketCode = (string) ($validated['market_code'] ?? '');
@@ -71,7 +72,7 @@ final class FilterPostController extends Controller
             ]
         );
 
-        $this->sections->sync($page, (string) ($validated['intro_blocks_json'] ?? '[]'));
+        $this->sections->sync($page, (string) ($validated['intro_blocks_json'] ?? '[]'), orderLocale: $validated['sections_order_locale'] ?? null);
 
         return redirect()->route('admin.seo.filters.index')
             ->with('success', 'Filtro preparado para indexación: '.$resolved['canonical']);

@@ -33,8 +33,11 @@
 
 @import './generated/fonts.css';
 @import './themes.css';
+@import './content-region.css';
+@import './block-presentation.css';
 @import '@fortawesome/fontawesome-free/css/all.css';
 @import './admin-ui.css';
+@import './block-inspector.css';
 
 @layer base {
     [x-cloak] {

@@ -1,16 +1,8 @@
-const schemaDefaults = (schema = {}) => Object.fromEntries(Object.entries(schema).map(([key, field]) => {
-    if (Object.hasOwn(field, 'default')) return [key, JSON.parse(JSON.stringify(field.default))];
-    if (['list', 'array', 'repeater'].includes(field.type)) return [key, []];
-    if (field.type === 'json') return [key, {}];
-    if (field.type === 'boolean') return [key, false];
-    if (field.type === 'select') {
-        const options = field.options || {};
-        return [key, (Array.isArray(options) ? options[0] : Object.keys(options)[0]) ?? ''];
-    }
-    return [key, ''];
-}));
+import { schemaDefaults, cleanEditorValue, cloneBlockTree, containsUnavailable } from './block-editor-tree.js';
+import { createEditorFeatures } from './editor-runtime.js';
 
-export const createBlockManager = (initialLocaleMap = {}, defaultLocale = 'es', initialAvailableTypes = [], availableLanguages = [], focusTarget = null) => ({
+export const createBlockManager = (initialLocaleMap = {}, defaultLocale = 'es', initialAvailableTypes = [], availableLanguages = [], focusTarget = null, options = {}) => ({
+            ...createEditorFeatures({ ...options, initial: initialLocaleMap }),
             activeLocale: defaultLocale,
             sectionsByLocale: initialLocaleMap,
             languages: availableLanguages,
@@ -90,7 +82,17 @@ export const createBlockManager = (initialLocaleMap = {}, defaultLocale = 'es', 
             // Resolución de iconos de widget: nunca vacío.
             // 1) clase FontAwesome (fa-*), 2) emoji/símbolo, 3) inicial del nombre.
             isBlockAvailable(block) {
-                return !!block && this.availableTypes.some(def => def.type === (block.type || 'text'));
+                return !!block && this.availableTypes.some(def => def.type === (block.type || 'text')) && !this.isRetiredBlockPayload(block);
+            },
+
+            isRetiredBlockPayload(block) {
+                return !!block && (this.typeDef(block.type).retiredPayloadKeys || []).some(key => Object.hasOwn(block, key));
+            },
+
+            unavailableBlockMessage(block) {
+                return this.isRetiredBlockPayload(block)
+                    ? 'Este bloque usa un formato retirado. Su contenido se conserva sin convertirlo; crea una composición nueva para sustituirlo.'
+                    : 'Su contenido permanece guardado. Reactiva su paquete para editarlo y mostrarlo.';
             },
 
             schemaFields(block) {
@@ -189,6 +191,7 @@ export const createBlockManager = (initialLocaleMap = {}, defaultLocale = 'es', 
                     this.sectionsByLocale[this.activeLocale] = [];
                 }
                 this.blocks = this.sectionsByLocale[this.activeLocale];
+                this.initializeEditorLifecycle();
 
                 // Deep-link from the front office: open and reveal the target block.
                 this.focusTargetBlock();
@@ -260,19 +263,9 @@ export const createBlockManager = (initialLocaleMap = {}, defaultLocale = 'es', 
 
             getCleanSerializedSections() {
                 this.syncBlocksToLocale();
-                const clean = JSON.parse(JSON.stringify(this.sectionsByLocale));
-                for (const locale in clean) {
-                    if (Array.isArray(clean[locale])) {
-                        clean[locale].forEach(b => {
-                            if (b && typeof b === 'object') {
-                                delete b._col_buffer;
-                                delete b._columns;
-                                delete b.is_collapsed;
-                            }
-                        });
-                    }
-                }
-                return JSON.stringify(clean);
+                const clean = cleanEditorValue(this.sectionsByLocale);
+                const ordered = { [this.activeLocale]: clean[this.activeLocale], ...Object.fromEntries(Object.entries(clean).filter(([locale]) => locale !== this.activeLocale)) };
+                return JSON.stringify(ordered);
             },
 
             insertExternalBlock(block, targetIndex = null) {
@@ -292,6 +285,7 @@ export const createBlockManager = (initialLocaleMap = {}, defaultLocale = 'es', 
 
             // Replace the whole block sequence (used by generic external producers).
             setBlocks(list) {
+                this.clearInspectorDrafts();
                 this.blocks = [];
                 list.forEach((block) => {
                     if (!block || typeof block !== 'object') {
@@ -308,6 +302,11 @@ export const createBlockManager = (initialLocaleMap = {}, defaultLocale = 'es', 
 
             syncBlocksToLocale() {
                 this.sectionsByLocale[this.activeLocale] = this.blocks;
+                this.reconcileInspectorDrafts();
+                this.recordHistory();
+                this.refreshEditorControls();
+                this.refreshInspectorControls();
+                this.scheduleCompositionPreview();
             },
 
             switchLocale(code) {
@@ -317,6 +316,10 @@ export const createBlockManager = (initialLocaleMap = {}, defaultLocale = 'es', 
                     this.sectionsByLocale[code] = [];
                 }
                 this.blocks = this.sectionsByLocale[code];
+                this.historyBoundary();
+                this.selectedPath = '[]';
+                this.selectedId = null;
+                this.inspectorColumnId = null;
 
                 const globalContext = window.cmsContext = window.cmsContext || { locale: null, marketIds: [] };
                 globalContext.locale = code;
@@ -407,44 +410,26 @@ export const createBlockManager = (initialLocaleMap = {}, defaultLocale = 'es', 
                 const target = targetLocale || this.activeLocale;
                 if (!this.sectionsByLocale[sourceLocale]) return;
 
+                this.historyBoundary();
+                // Translation copies retain structural identities across languages.
                 const clonedBlocks = JSON.parse(JSON.stringify(this.sectionsByLocale[sourceLocale]));
-                clonedBlocks.forEach(b => {
-                    b.id = 'sec_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
-                });
 
                 this.sectionsByLocale[target] = clonedBlocks;
                 if (target === this.activeLocale) {
                     this.blocks = this.sectionsByLocale[target];
                 }
+                this.recordHistory();
             },
 
             addBlock(type, forceMode = null) {
+                this.historyBoundary();
                 if (!this.availableTypes.some(def => def.type === type)) return;
                 const mode = forceMode || this.insertionMode;
 
                 const newBlock = Object.assign({
                     id: 'sec_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
                     type: type,
-                    animation: 'fadeInUp',
-                    animation_delay: '0.2s',
-                    animation_duration: '1s',
-                    container_style: 'cyber-card',
-                    content_width: 'centered',
-                    bg_type: 'none',
-                    bg_color: '',
-                    bg_image_url: '',
-                    bg_image_overlay: 'rgba(0,0,0,0.5)',
-                    bg_video_url: '',
-                    bg_video_poster: '',
-                    bg_video_overlay: 'rgba(0,0,0,0.5)',
-                    border_top: { enabled: false, color: '#00FF99', width: '2px', style: 'solid' },
-                    border_bottom: { enabled: false, color: '#00FF99', width: '2px', style: 'solid' },
-                    divider_top: { type: 'none', color: '#0E0E0E', height: 60, flip: false },
-                    divider_bottom: { type: 'none', color: '#0E0E0E', height: 60, flip: false },
-                    scroll_magic: { behavior: 'fadeInUp', delay: '0.2s', duration: '1s', scrub: 'none' },
                     is_collapsed: false,
-                    columns_layout: '1',
-                    columns: [],
                 }, this.initialBlockPayload(type, mode));
 
                 if (this.insertIndex !== null && this.insertIndex >= 0 && this.insertIndex <= this.blocks.length) {
@@ -454,6 +439,7 @@ export const createBlockManager = (initialLocaleMap = {}, defaultLocale = 'es', 
                 }
                 this.insertIndex = null;
                 this.syncBlocksToLocale();
+                this.selectNode([this.blocks.indexOf(newBlock)]); this.inspectorTab = 'content';
                 this.showAddModal = false;
             },
 
@@ -464,23 +450,26 @@ export const createBlockManager = (initialLocaleMap = {}, defaultLocale = 'es', 
             },
 
             removeBlock(index) {
+                this.historyBoundary();
                 if (this.containsUnavailableBlock(this.blocks[index])) return;
                 if (confirm('¿Estás seguro de que deseas eliminar este bloque de la página?')) {
                     this.blocks.splice(index, 1);
                     this.syncBlocksToLocale();
+                    if (!this.selectedNode()) { this.selectNode(this.blocks.length ? [Math.min(index, this.blocks.length - 1)] : []); if (!this.blocks.length) this.previewHtml = ''; }
                 }
             },
 
             cloneBlock(index) {
                 if (this.containsUnavailableBlock(this.blocks[index])) return;
-                const cloned = JSON.parse(JSON.stringify(this.blocks[index]));
-                cloned.id = 'sec_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
-                cloned.title = (cloned.title || '') + ' (Copia)';
+                this.historyBoundary();
+                const cloned = cloneBlockTree(this.blocks[index], this.availableTypes);
+                if (cloned.title) cloned.title += ' (Copia)';
                 this.blocks.splice(index + 1, 0, cloned);
                 this.syncBlocksToLocale();
             },
 
             moveUp(index) {
+                this.historyBoundary();
                 if (index > 0) {
                     const temp = this.blocks[index];
                     this.blocks[index] = this.blocks[index - 1];
@@ -490,6 +479,7 @@ export const createBlockManager = (initialLocaleMap = {}, defaultLocale = 'es', 
             },
 
             moveDown(index) {
+                this.historyBoundary();
                 if (index < this.blocks.length - 1) {
                     const temp = this.blocks[index];
                     this.blocks[index] = this.blocks[index + 1];
@@ -506,14 +496,25 @@ export const createBlockManager = (initialLocaleMap = {}, defaultLocale = 'es', 
             //  - `section`: fondo/parallax, bordes, divisores, animación y layout de la fila.
             //  - `column`:  fondo/parallax y bordes de una columna concreta.
             //  - `block`:   los campos del bloque (nunca fondo, que es de la fila).
+            hasLegacyAppearance(subject) {
+                return !!subject && ['bg_type', 'bg_color', 'container_style', 'content_width', 'border_top', 'border_bottom', 'divider_top', 'divider_bottom', 'animation', 'scroll_magic'].some(key => Object.hasOwn(subject, key));
+            },
+
+            ensureLegacyAppearance(subject) {
+                if (!subject) return;
+                const defaults = { animation: 'none', animation_delay: '0s', animation_duration: '1s', container_style: 'transparent', content_width: 'full', bg_type: 'none', bg_color: '', bg_image_url: '', bg_image_overlay: 'rgba(0,0,0,0.5)', bg_video_url: '', bg_video_poster: '', bg_video_overlay: 'rgba(0,0,0,0.5)', bg_behavior: 'normal' };
+                for (const [key, value] of Object.entries(defaults)) if (subject[key] === undefined) subject[key] = value;
+                subject.border_top ??= { enabled: false, color: 'var(--cms-accent)', width: '1px', style: 'solid' };
+                subject.border_bottom ??= { enabled: false, color: 'var(--cms-accent)', width: '1px', style: 'solid' };
+                subject.divider_top ??= { type: 'none', color: 'var(--cms-surface)', height: 60, flip: false };
+                subject.divider_bottom ??= { type: 'none', color: 'var(--cms-surface)', height: 60, flip: false };
+                subject.scroll_magic ??= { behavior: subject.animation, delay: subject.animation_delay, duration: subject.animation_duration, scrub: 'none' };
+            },
+
             openAppearanceModal(index, target = null) {
-                const subject = target?.subIndex === undefined ? this.blocks[index] : this.blocks[index]?.columns?.[target.colIndex]?.blocks?.[target.subIndex];
-                if (!subject || (target?.subIndex !== undefined && !this.isBlockAvailable(subject))) return;
-                this.editingAppearanceIndex = index;
-                this.appearanceTarget = target; // null | { colIndex } | { colIndex, subIndex }
-                this.appearanceScope = !target ? 'section' : (this.appearanceTarget.subIndex === undefined ? 'column' : 'block');
-                this.appearanceTab = 'container';
-                this.showAppearanceModal = true;
+                if (target && target.subIndex === undefined) this.selectColumn([index, 'columns', target.colIndex]);
+                else this.selectNode(target ? [index, 'columns', target.colIndex, 'blocks', target.subIndex] : [index]);
+                this.inspectorTab = 'design'; this.showStructure = true; this.inspectorMobilePane = 'edit';
             },
 
             // Abre la apariencia de UNA columna (ámbito `column`).
@@ -549,6 +550,7 @@ export const createBlockManager = (initialLocaleMap = {}, defaultLocale = 'es', 
                     if (col.style.bg_video_poster === undefined) col.style.bg_video_poster = '';
                     if (col.style.bg_video_overlay === undefined) col.style.bg_video_overlay = 'rgba(0,0,0,0.5)';
 
+                    this.ensureLegacyAppearance(col.style);
                     return col.style;
                 }
 
@@ -560,17 +562,13 @@ export const createBlockManager = (initialLocaleMap = {}, defaultLocale = 'es', 
             // recuperan) las columnas necesarias. El contenido propio de la
             // sección pasa a ser el primer bloque de la primera columna.
             containsUnavailableBlock(block) {
-                const columns = Array.isArray(block?.columns) ? block.columns : [];
-                if (columns.length) {
-                    return columns.some(column => (column?.blocks || []).some(child => this.containsUnavailableBlock(child)));
-                }
-                return !this.isBlockAvailable(block);
+                return containsUnavailable(block, this.availableTypes);
             },
 
             canSetColumnsLayout(block, layout) {
                 if (!block) return false;
                 const columns = Array.isArray(block.columns) ? block.columns : [];
-                if (!columns.length) return this.isBlockAvailable(block);
+                if (!columns.length) return this.isBlockAvailable(block) && !this.containsUnavailableBlock(block);
                 const count = layout === '4' ? 4 : (layout === '3' ? 3 : (layout === '1' ? 1 : 2));
                 // Reducing columns would re-parent these nodes; the server preserves
                 // unavailable instances in their stored column until reactivation.
@@ -578,6 +576,7 @@ export const createBlockManager = (initialLocaleMap = {}, defaultLocale = 'es', 
             },
 
             setColumnsLayout(blockIndex, layout) {
+                this.historyBoundary();
                 const block = this.blocks[blockIndex];
                 if (!this.canSetColumnsLayout(block, layout)) return;
 
@@ -679,6 +678,7 @@ export const createBlockManager = (initialLocaleMap = {}, defaultLocale = 'es', 
             },
 
             addColumnBlock(blockIndex, colIndex, type, forceMode = null) {
+                this.historyBoundary();
                 if (!this.availableTypes.some(def => def.type === type)) return;
                 const block = this.blocks[blockIndex];
                 const cols = this.blockColumns(block);
@@ -695,27 +695,30 @@ export const createBlockManager = (initialLocaleMap = {}, defaultLocale = 'es', 
             },
 
             removeColumnBlock(blockIndex, colIndex, subIndex) {
+                this.historyBoundary();
                 const block = this.blocks[blockIndex];
                 const cols = this.blockColumns(block);
-                if (!block || !cols || !this.isBlockAvailable(cols[colIndex]?.blocks?.[subIndex])) return;
+                if (!block || !cols || this.containsUnavailableBlock(cols[colIndex]?.blocks?.[subIndex])) return;
                 cols[colIndex].blocks.splice(subIndex, 1);
                 this.syncBlocksToLocale();
             },
 
             moveColumnBlockUp(blockIndex, colIndex, subIndex) {
+                this.historyBoundary();
                 if (subIndex <= 0) return;
                 const cols = this.blockColumns(this.blocks[blockIndex]);
                 const col = cols[colIndex];
-                if (!this.isBlockAvailable(col?.blocks?.[subIndex])) return;
+                if (this.containsUnavailableBlock(col?.blocks?.[subIndex])) return;
                 const item = col.blocks.splice(subIndex, 1)[0];
                 col.blocks.splice(subIndex - 1, 0, item);
                 this.syncBlocksToLocale();
             },
 
             moveColumnBlockDown(blockIndex, colIndex, subIndex) {
+                this.historyBoundary();
                 const cols = this.blockColumns(this.blocks[blockIndex]);
                 const col = cols[colIndex];
-                if (!this.isBlockAvailable(col?.blocks?.[subIndex]) || subIndex >= col.blocks.length - 1) return;
+                if (this.containsUnavailableBlock(col?.blocks?.[subIndex]) || subIndex >= col.blocks.length - 1) return;
                 const item = col.blocks.splice(subIndex, 1)[0];
                 col.blocks.splice(subIndex + 1, 0, item);
                 this.syncBlocksToLocale();
@@ -760,7 +763,8 @@ export const createBlockManager = (initialLocaleMap = {}, defaultLocale = 'es', 
                 if (!request || !detail || detail.target !== request.targetId || !detail.file) return;
 
                 const file = detail.file;
-                if (request.mode === 'markdown') {
+                if (request.mode === 'inspector') request.onSelect?.(file);
+                else if (request.mode === 'markdown') {
                     const snippet = file.is_image
                         ? `\n![${file.name || 'imagen'}](${file.url})\n`
                         : `\n[${file.name || 'archivo'}](${file.url})\n`;

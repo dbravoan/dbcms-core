@@ -1,6 +1,6 @@
 @php($categories = app(\DbCms\Core\Services\Cms\CookieConsentService::class)->getDisclosedCategories())
 <div x-data="cookieConsent" data-consent-endpoint="{{ route('privacy.consent.show') }}">
-    <section x-cloak x-show="showBanner" aria-label="{{ __('cookies.banner.heading') }}" class="fixed bottom-0 inset-x-0 z-50 p-5 cms-card border-t cms-border shadow-xl">
+    <section data-cms-consent-banner x-cloak x-show="showBanner" aria-label="{{ __('cookies.banner.heading') }}" class="fixed bottom-0 inset-x-0 z-50 p-5 cms-card border-t cms-border shadow-xl">
         <h2 class="font-bold cms-text">{{ __('cookies.banner.heading') }}</h2>
         <p class="text-sm cms-text-muted my-2">{{ __('cookies.banner.message') }}</p>
         <div class="flex flex-wrap gap-3">

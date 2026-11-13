@@ -39,6 +39,7 @@ final class EditorialEntityRequest extends FormRequest
             'market_ids' => 'nullable|array',
             'market_ids.*' => 'integer|exists:markets,id',
             'sections_json' => 'nullable|string|json',
+            'sections_order_locale' => 'nullable|string|max:20',
         ];
     }
 

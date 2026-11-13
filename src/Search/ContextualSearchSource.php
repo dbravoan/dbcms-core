@@ -6,13 +6,16 @@ namespace DbCms\Core\Search;
 
 use DbCms\Core\Contracts\Services\PublicContentDiscoveryInterface;
 use DbCms\Core\Models\Market;
+use DbCms\Core\Search\Contracts\BlockReferenceSearchSourceInterface;
 use DbCms\Core\Search\Contracts\SearchSourceInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 /** Module-owned projections with canonical documents for each public context. */
-abstract class ContextualSearchSource implements SearchSourceInterface
+abstract class ContextualSearchSource implements BlockReferenceSearchSourceInterface, SearchSourceInterface
 {
+    use ReadsBlockReferences;
+
     public function __construct(protected readonly PublicContentDiscoveryInterface $discovery) {}
 
     /** @return Builder<covariant Model> */

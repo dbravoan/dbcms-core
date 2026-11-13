@@ -45,6 +45,11 @@ final class FormFieldTypesServiceProvider extends ServiceProvider
             new CoreFieldType('select'),
             new CoreFieldType('checkbox'),
             new CoreFieldType('radio'),
+            new CoreFieldType('date', 'date_format:Y-m-d'),
+            new CoreFieldType('time', 'date_format:H:i'),
+            new CoreFieldType('url', 'url:http,https'),
+            new CoreFieldType('hidden'),
+            new CoreFieldType('file', 'file'),
         ];
     }
 }

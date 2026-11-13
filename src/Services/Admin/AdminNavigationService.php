@@ -150,6 +150,12 @@ class AdminNavigationService implements AdminNavigationServiceInterface
                 createTooltip: __('admin.nav.create.page'),
                 active: request()->routeIs('admin.pages.*')
             );
+            $items[] = new AdminNavigationItem(
+                id: 'nav-block-components', label: 'Componentes reutilizables',
+                route: 'admin.block-components.index', icon: 'fa-solid fa-cubes',
+                createRoute: 'admin.block-components.create', createTooltip: 'Crear componente',
+                active: request()->routeIs('admin.block-components.*')
+            );
         }
 
         return empty($items) ? null : new AdminNavigationSection(__('admin.nav.sections.content'), $items, true);

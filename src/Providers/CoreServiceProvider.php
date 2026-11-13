@@ -8,6 +8,7 @@ use DbCms\Core\Cms;
 use DbCms\Core\Console\Commands\CachePurgeCommand;
 use DbCms\Core\Console\Commands\CmsMaintenanceCommand;
 use DbCms\Core\Console\Commands\CreateM2mClientCommand;
+use DbCms\Core\Console\Commands\DescribeBlocksCommand;
 use DbCms\Core\Console\Commands\ExecutionPrivacyCommand;
 use DbCms\Core\Console\Commands\InstallCmsCommand;
 use DbCms\Core\Console\Commands\IssueMcpTokenCommand;
@@ -71,6 +72,7 @@ final class CoreServiceProvider extends ServiceProvider
             MigrateMediaToExternalCommand::class,
             SearchReindexCommand::class,
             SyncAccessCommand::class,
+            DescribeBlocksCommand::class,
         ]);
         Event::listen(DiagnosingHealth::class, static function (): void {
             if (is_file(storage_path('installed'))) {

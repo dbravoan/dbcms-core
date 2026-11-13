@@ -64,7 +64,7 @@ final class CapabilityExecutor implements CapabilityExecutorInterface
             $this->log($audit + ['status' => 'error', 'error' => 'Validation failed']);
 
             $result = ['error' => 'Validation failed.', 'validation' => $e->errors()];
-            if (in_array($name, ['cms_entity_create', 'cms_entity_update', 'cms_content_sections_sync', 'cms_media_import', 'cms_media_upload'], true)) {
+            if (in_array($name, ['cms_entity_create', 'cms_entity_update', 'cms_content_sections_sync', 'cms_content_sections_patch', 'cms_media_import', 'cms_media_upload'], true)) {
                 $field = array_key_first($e->errors());
                 $messages = $field !== null ? $e->errors()[$field] : [];
                 $result += ['status' => 'needs_input', 'success' => false, 'question' => '¿Puedes corregir «'.($field ?? 'contenido').'»? '.implode(' ', $messages)];

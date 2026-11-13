@@ -18,8 +18,8 @@
         window.addEventListener('open-filemanager', (e) => {
             this.targetField = e.detail?.target || null;
             const requested = e.detail?.kind;
-            this.kind = ['image', 'video', 'doc'].includes(requested) ? requested : 'all';
-            this.activeTab = this.kind === 'image' ? 'images' : (this.kind === 'video' ? 'videos' : (this.kind === 'doc' ? 'docs' : 'all'));
+            this.kind = ['image', 'video', 'audio', 'animation', 'doc'].includes(requested) ? requested : 'all';
+            this.activeTab = { image: 'images', video: 'videos', audio: 'audio', animation: 'animations', doc: 'docs' }[this.kind] || 'all';
             this.selectedFile = null;
             this.uploadError = '';
             this.searchQuery = '';
@@ -40,6 +40,8 @@
         if (!file || this.kind === 'all') return true;
         if (this.kind === 'image') return !!file.is_image;
         if (this.kind === 'video') return !!file.is_video;
+        if (this.kind === 'audio') return !!file.is_audio;
+        if (this.kind === 'animation') return !!file.is_animation;
         if (this.kind === 'doc') return !!file.is_doc;
 
         return true;
@@ -210,6 +212,8 @@
         if (this.kind !== 'all') list = list.filter(f => this.allowsKind(f));
         if (this.activeTab === 'images') list = list.filter(f => f.is_image);
         if (this.activeTab === 'videos') list = list.filter(f => f.is_video);
+        if (this.activeTab === 'audio') list = list.filter(f => f.is_audio);
+        if (this.activeTab === 'animations') list = list.filter(f => f.is_animation);
         if (this.activeTab === 'docs') list = list.filter(f => f.is_doc);
 
         if (this.searchQuery && this.searchQuery.trim() !== '') {
@@ -264,6 +268,8 @@
                 <button x-show="kind === 'all'" @click="activeTab = 'all'" :class="activeTab === 'all' ? 'bg-[color:var(--admin-accent)] text-[color:var(--admin-on-accent)] font-bold' : 'text-[color:var(--admin-muted)] hover:text-[color:var(--admin-text)]'" class="px-3 py-1.5 rounded-lg transition-all">{{ __('admin.filemanager.tab_all') }}</button>
                 <button x-show="kind === 'all' || kind === 'image'" @click="activeTab = 'images'" :class="activeTab === 'images' ? 'bg-[color:var(--admin-accent)] text-[color:var(--admin-on-accent)] font-bold' : 'text-[color:var(--admin-muted)] hover:text-[color:var(--admin-text)]'" class="px-3 py-1.5 rounded-lg transition-all">{{ __('admin.filemanager.tab_images') }}</button>
                 <button x-show="kind === 'all' || kind === 'video'" @click="activeTab = 'videos'" :class="activeTab === 'videos' ? 'bg-[color:var(--admin-accent)] text-[color:var(--admin-on-accent)] font-bold' : 'text-[color:var(--admin-muted)] hover:text-[color:var(--admin-text)]'" class="px-3 py-1.5 rounded-lg transition-all">{{ __('admin.filemanager.tab_videos') }}</button>
+                <button type="button" x-show="kind === 'all' || kind === 'audio'" @click="activeTab = 'audio'" :aria-pressed="activeTab === 'audio'" class="px-3 py-1.5 rounded-lg">Audio</button>
+                <button type="button" x-show="kind === 'all' || kind === 'animation'" @click="activeTab = 'animations'" :aria-pressed="activeTab === 'animations'" class="px-3 py-1.5 rounded-lg">Animaciones</button>
                 <button x-show="kind === 'all' || kind === 'doc'" @click="activeTab = 'docs'" :class="activeTab === 'docs' ? 'bg-[color:var(--admin-accent)] text-[color:var(--admin-on-accent)] font-bold' : 'text-[color:var(--admin-muted)] hover:text-[color:var(--admin-text)]'" class="px-3 py-1.5 rounded-lg transition-all">{{ __('admin.filemanager.tab_docs') }}</button>
             </div>
 
@@ -284,7 +290,7 @@
                 <label class="cursor-pointer px-3.5 py-1.5 border border-[color:var(--admin-accent)] text-[color:var(--admin-accent)] hover:bg-[color:var(--admin-accent)] hover:text-[color:var(--admin-on-accent)] font-bold rounded transition-all flex items-center gap-1.5 text-xs">
                     <i x-show="uploading" class="fa-solid fa-spinner fa-spin"></i>
                     <span x-text="uploading ? 'Subiendo...' : '+ Subir Archivo'"></span>
-                    <input type="file" :accept="kind === 'image' ? 'image/*' : (kind === 'video' ? 'video/*' : null)" @change="uploadFile($event)" class="hidden">
+                    <input type="file" :accept="kind === 'image' ? 'image/*' : (kind === 'video' ? 'video/*' : (kind === 'audio' ? 'audio/*' : (kind === 'animation' ? '.json,application/json' : null)))" @change="uploadFile($event)" class="hidden">
                 </label>
                 <button @click="fetchFiles()" class="text-[color:var(--admin-muted)] hover:text-[color:var(--admin-accent)] px-2 py-1" title="{{ __('admin.filemanager.reload') }}"><i class="fa-solid fa-rotate-right"></i></button>
             </div>
@@ -340,6 +346,9 @@
                                 <template x-if="file.is_video">
                                     <span class="text-3xl text-[color:var(--admin-accent)]"><i class="fa-solid fa-video"></i></span>
                                 </template>
+                                <template x-if="file.is_audio || file.is_animation">
+                                    <span class="text-3xl" x-text="file.is_audio ? '♫' : '▶'"></span>
+                                </template>
                                 <template x-if="file.is_doc">
                                     <span class="text-3xl text-blue-500"><i class="fa-solid fa-file-lines"></i></span>
                                 </template>
@@ -383,6 +392,10 @@
                         <template x-if="selectedFile?.is_video">
                             <span class="text-4xl text-[color:var(--admin-accent)]"><i class="fa-solid fa-video"></i></span>
                         </template>
+                        <template x-if="selectedFile?.is_audio">
+                            <audio :src="selectedFile.url" controls preload="none" class="w-full"></audio>
+                        </template>
+                        <template x-if="selectedFile?.is_animation"><span>Animación Lottie validada</span></template>
                         <template x-if="selectedFile?.is_doc">
                             <span class="text-4xl text-blue-500"><i class="fa-solid fa-file-lines"></i></span>
                         </template>

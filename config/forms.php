@@ -25,6 +25,11 @@ return [
         'select' => null,
         'checkbox' => null,
         'radio' => null,
+        'date' => null,
+        'time' => null,
+        'url' => null,
+        'hidden' => null,
+        'file' => null,
 
         // Module-provided types (registered by the module when it is active).
         'captcha' => 'captcha',
@@ -46,6 +51,11 @@ return [
         'select' => 'admin.forms_ui.type_select',
         'checkbox' => 'admin.forms_ui.type_checkbox',
         'radio' => 'admin.forms_ui.type_radio',
+        'date' => 'Fecha',
+        'time' => 'Hora',
+        'url' => 'URL',
+        'hidden' => 'Oculto',
+        'file' => 'Archivo privado',
         'captcha' => 'admin.forms_ui.type_captcha',
     ],
 

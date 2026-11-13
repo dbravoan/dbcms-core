@@ -30,6 +30,7 @@ use DbCms\Core\Observers\ContentTranslationCacheObserver;
 use DbCms\Core\Routing\FrontRoutePatterns;
 use DbCms\Core\Search\Contracts\SearchSourceRegistryInterface;
 use DbCms\Core\View\Components\CmsBlock;
+use DbCms\Core\View\Components\CmsContentRegion;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Route;
@@ -51,6 +52,7 @@ final class PagesServiceProvider extends ServiceProvider
             $pageViews->registerCore('legal.'.$legal, 'legal.'.$legal);
         }
         Blade::component(CmsBlock::class, 'cms::block');
+        Blade::component(CmsContentRegion::class, 'cms::content-region');
         $this->app->make(Router::class)->middlewareGroup('cms.front', ['web', ResolveMarketAndLocaleMiddleware::class, EnsureSeoMeta::class]);
         $this->app->make(SearchSourceRegistryInterface::class)->register($this->app->make(PageSearchSource::class));
         Page::observe(PageSearchObserver::class);

@@ -39,7 +39,7 @@ interface BlockTypeInterface
     public function getRequiredModule(): ?string;
 
     /**
-     * Whether the block manages its own interior grid (features, pricing,
+     * Whether the block manages its own interior grid (features, composable containers,
      * carousel…).
      *
      * Full-width blocks are never dropped **inside** a column: they are added as
