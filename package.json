@@ -1,0 +1,12 @@
+{
+    "name": "dbcms-core-development",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "test": "node --test tests/Frontend/*.test.mjs"
+    },
+    "devDependencies": {
+        "@playwright/test": "^1.65.1",
+        "vite": "^8.3.8"
+    }
+}

@@ -1,0 +1,1 @@
+<figure class="cms-map">@if($p['title'] !== '')<figcaption>{{ $p['title'] }}</figcaption>@endif @if($p['address'] !== '')<p>{{ $p['address'] }}</p>@endif {!! $externalHtml !!} @if($p['directions_url'] !== '')<a href="{{ $p['directions_url'] }}" rel="noopener noreferrer">{{ __('Cómo llegar') }}</a>@endif</figure>

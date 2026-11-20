@@ -1,0 +1,72 @@
+{
+    "name": "dbravoan/dbcms-core",
+    "type": "library",
+    "description": "dbCMS core for Laravel",
+    "license": "MIT",
+    "require": {
+        "php": "^8.4",
+        "composer/semver": "^3.4",
+        "laravel/framework": "^13.0",
+        "laravel/passport": "^13.0",
+        "league/flysystem-aws-s3-v3": "^3.0",
+        "league/html-to-markdown": "^5.2",
+        "nyholm/psr7": "^1.8",
+        "ext-dom": "*",
+        "ext-fileinfo": "*",
+        "ext-gd": "*",
+        "ext-intl": "*",
+        "ext-pdo_mysql": "*",
+        "laravel/mcp": "^1.0",
+        "ext-curl": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "DbCms\\Core\\": "src/",
+            "DbCms\\Core\\Database\\Factories\\": "database/factories/",
+            "DbCms\\Core\\Database\\Seeders\\": "database/seeders/"
+        },
+        "files": [
+            "src/Support/helpers.php"
+        ]
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "DbCms\\Core\\Providers\\CoreServiceProvider"
+            ]
+        },
+        "dbcms": {
+            "identifier": "core",
+            "repository": "https://github.com/dbravoan/dbcms-core"
+        }
+    },
+    "conflict": {
+        "dbravoan/dbcms-module-mcp": "*",
+        "dbravoan/dbcms-module-forms": "*",
+        "dbravoan/dbcms-module-search": "*",
+        "dbravoan/dbcms-module-captcha": "*",
+        "dbravoan/dbcms-module-maintenance": "*",
+        "dbravoan/dbcms-blocks-basic": "*",
+        "dbravoan/dbcms-blocks-charts": "*",
+        "dbravoan/dbcms-admin-theme-dbcms": "*"
+    },
+    "scripts": {
+        "fixture:lock": "@php tooling/package.php fixture:lock",
+        "prepare": "@php tooling/package.php prepare",
+        "test": [
+            "Composer\\Config::disableProcessTimeout",
+            "@php tooling/tests.php",
+            "@php tooling/package.php test"
+        ],
+        "check": [
+            "Composer\\Config::disableProcessTimeout",
+            "@php tooling/package.php check"
+        ],
+        "test:dist": [
+            "Composer\\Config::disableProcessTimeout",
+            "@php tooling/package.php test:dist"
+        ],
+        "test:tooling": "@php tooling/tests.php",
+        "profiles": "@php tooling/package.php profiles"
+    }
+}

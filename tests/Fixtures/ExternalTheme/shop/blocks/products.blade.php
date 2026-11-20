@@ -1,0 +1,1 @@
+<p>Fixture products</p>

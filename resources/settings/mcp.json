@@ -1,0 +1,17 @@
+{
+    "name": "Servidor MCP (Model Context Protocol)",
+    "settings": {
+        "is_enabled": {
+            "type": "boolean",
+            "label": "Activar Servidor MCP",
+            "description": "Permite conexiones externas autenticadas al endpoint /mcp/cms.",
+            "default": true
+        },
+        "rate_limit_per_minute": {
+            "type": "number",
+            "label": "Límite de peticiones por minuto",
+            "description": "Máximo de peticiones autenticadas por minuto para cada usuario o cuenta de servicio. Las llamadas a herramientas mantienen siempre su registro de auditoría.",
+            "default": 60
+        }
+    }
+}

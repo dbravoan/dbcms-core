@@ -1,0 +1,36 @@
+<?php
+
+declare(strict_types=1);
+
+namespace DbCms\Core\Models;
+
+use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+
+/**
+ * @property int $id
+ * @property string $name
+ * @property string $slug
+ * @property string|null $description
+ */
+class Permission extends Model
+{
+    /** @use HasFactory<Factory<static>> */
+    use HasFactory;
+
+    protected $fillable = [
+        'name',
+        'slug',
+        'description',
+    ];
+
+    /**
+     * @return BelongsToMany<Role, $this>
+     */
+    public function roles(): BelongsToMany
+    {
+        return $this->belongsToMany(Role::class, 'permission_role');
+    }
+}

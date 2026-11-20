@@ -1,0 +1,7 @@
+/* Brand utilities load after app.css. Scan the shared consumers too so a
+   brand's base utility cannot override a shared responsive variant. */
+@source '../../src';
+@source '../../../modules';
+@source '../../../blocks';
+@source '../views/admin';
+@source '../views/components';

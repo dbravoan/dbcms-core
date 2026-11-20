@@ -1,0 +1,97 @@
+{
+    "name": "Mantenimiento & Construcción",
+    "settings": {
+        "is_enabled": {
+            "type": "boolean",
+            "label": "Activar Modo Mantenimiento / En Construcción",
+            "description": "Si está activo, los visitantes públicos verán la pantalla de mantenimiento con HTTP 503. Los administradores y usuarios con permisos de backoffice mantendrán acceso normal.",
+            "default": false
+        },
+        "mode": {
+            "type": "select",
+            "label": "Modo de presentación",
+            "description": "Selecciona la plantilla gráfica interactiva por defecto o utiliza tu propio código HTML.",
+            "options": {
+                "default": "Diseño Cyber Interactivo por Defecto (>_db Polygon Canvas)",
+                "custom_html": "HTML / Blade Personalizado al gusto"
+            },
+            "default": "default"
+        },
+        "title": {
+            "type": "text",
+            "label": "Título de la pestaña / Meta Title",
+            "description": "Título mostrado en la pestaña del navegador.",
+            "default": "",
+            "placeholder": "David Bravo"
+        },
+        "logo_text": {
+            "type": "text",
+            "label": "Texto del Logotipo",
+            "description": "Texto del identificador principal en la pantalla interactiva (ej. >_db).",
+            "default": "",
+            "placeholder": ">_db"
+        },
+        "accent_color": {
+            "type": "color",
+            "label": "Color de acento / Neón",
+            "description": "Color hexadecimal para el cursor parpadeante, botones y líneas de la animación poligonal.",
+            "default": "#00FF99"
+        },
+        "bg_color": {
+            "type": "color",
+            "label": "Color de fondo",
+            "description": "Color hexadecimal de fondo del contenedor de mantenimiento.",
+            "default": "#1A1A1A"
+        },
+        "end_datetime": {
+            "type": "datetime-local",
+            "label": "Fecha y hora estimada de finalización / reapertura",
+            "description": "Fecha y hora objetivo opcional. Se utiliza para calcular la cabecera HTTP Retry-After y activar la cuenta atrás interactiva en vivo.",
+            "default": ""
+        },
+        "show_countdown": {
+            "type": "boolean",
+            "label": "Mostrar cuenta atrás en vivo hacia la fecha límite",
+            "description": "Si está activo y hay una fecha fijada, muestra un contador regresivo con días, horas, minutos y segundos.",
+            "default": true
+        },
+        "headline": {
+            "type": "text",
+            "label": "Titular de estado secundario",
+            "description": "Texto sutil o estado mostrado junto a la cuenta atrás.",
+            "default": "PLATAFORMA EN CONSTRUCCIÓN",
+            "placeholder": "PLATAFORMA EN CONSTRUCCIÓN"
+        },
+        "message": {
+            "type": "textarea",
+            "label": "Mensaje informativo para los visitantes",
+            "description": "Explicación breve mostrada en pantalla.",
+            "default": "Estamos desplegando nuevas funcionalidades y optimizando la infraestructura. Volveremos a estar en línea muy pronto.",
+            "placeholder": "Estamos desplegando..."
+        },
+        "show_download_svg": {
+            "type": "boolean",
+            "label": "Mostrar botón para descargar SVG del logo",
+            "description": "Muestra el botón 'Download SVG' para descargar el logo vectorial.",
+            "default": false
+        },
+        "show_admin_link": {
+            "type": "boolean",
+            "label": "Mostrar enlace discreto de acceso al panel (/admin)",
+            "description": "Muestra un enlace en la esquina inferior para que los administradores puedan iniciar sesión.",
+            "default": true
+        },
+        "custom_html": {
+            "type": "textarea",
+            "label": "Código HTML / Blade Personalizado",
+            "description": "Código HTML libre que se renderizará cuando se active el modo 'HTML / Blade Personalizado al gusto'.",
+            "default": ""
+        },
+        "retry_after_fallback": {
+            "type": "number",
+            "label": "Segundos para cabecera HTTP 503 Retry-After (fallback)",
+            "description": "Valor en segundos devuelto a los motores de búsqueda y clientes HTTP cuando no se configura una fecha límite.",
+            "default": 3600
+        }
+    }
+}

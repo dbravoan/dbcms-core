@@ -1,0 +1,24 @@
+{
+    "name": "fixture/blocks",
+    "version": "0.1.0",
+    "type": "dbcms-block-package",
+    "license": "MIT",
+    "require": {
+        "dbravoan/dbcms-core": "~0.0.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "Fixture\\Blocks\\": "./"
+        }
+    },
+    "extra": {
+        "dbcms": {
+            "identifier": "fixture_blocks",
+            "name": "Fixture blocks",
+            "blocks": [
+                "Fixture\\Blocks\\ExternalBlock",
+                "Fixture\\Blocks\\ExternalMetric"
+            ]
+        }
+    }
+}

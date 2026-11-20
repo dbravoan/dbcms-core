@@ -1,0 +1,15 @@
+{
+    "name": "dbCMS (Dark Cyberpunk)",
+    "identifier": "dbcms",
+    "description": "Backoffice oscuro de alta tecnología con acentos neón #00FF99, tipografía monoespaciada y estética cyber-terminal.",
+    "author": "dbCMS Design Team",
+    "brand": {
+        "name": "dbCMS",
+        "tagline": "Arquitectura Modular y Agéntica",
+        "logo": null,
+        "icon": null,
+        "edition": null,
+        "accent": "#00FF99",
+        "mode": "dark"
+    }
+}

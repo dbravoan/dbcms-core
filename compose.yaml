@@ -1,0 +1,40 @@
+services:
+  tools:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    working_dir: /workspace/package
+    volumes:
+      - .:/workspace/package
+    environment:
+      DBCMS_TEST_DATABASE: core_testing
+      DBCMS_TEST_ISOLATED: "1"
+      NODE_OPTIONS: --dns-result-order=ipv4first
+      npm_config_cache: /workspace/package/.build/npm-cache
+      COMPOSER_IPRESOLVE: 4
+      COMPOSER_AUTH: ${COMPOSER_AUTH:-}
+      DBCMS_TEST_PROFILE: ${DBCMS_TEST_PROFILE:-default}
+      DB_CONNECTION: mysql
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_DATABASE: core_testing
+      DB_USERNAME: package
+      DB_PASSWORD: disposable
+      COMPOSER_CACHE_DIR: /workspace/package/.build/composer-cache
+    depends_on:
+      mysql:
+        condition: service_healthy
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: core_testing
+      MYSQL_USER: package
+      MYSQL_PASSWORD: disposable
+      MYSQL_ROOT_PASSWORD: disposable-root
+    tmpfs:
+      - /var/lib/mysql
+    healthcheck:
+      test: [CMD, mysqladmin, ping, --protocol=TCP, -h, 127.0.0.1, -pdisposable-root]
+      interval: 2s
+      timeout: 3s
+      retries: 60

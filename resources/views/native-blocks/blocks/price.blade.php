@@ -1,0 +1,1 @@
+<div class="cms-price">@if($p['previous_amount'] !== '')<del><span class="sr-only">{{ __('Precio anterior') }}: </span>{{ $p['previous_amount'] }} {{ $p['currency'] }}</del>@endif <span class="cms-price-amount">{{ $p['amount'] }} {{ $p['currency'] }}</span>@if($p['period'] !== '')<span>{{ $p['period'] }}</span>@endif @if($p['note'] !== '')<p>{{ $p['note'] }}</p>@endif</div>

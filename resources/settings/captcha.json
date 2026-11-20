@@ -1,0 +1,38 @@
+{
+    "name": "Security & Dynamic Captcha",
+    "settings": {
+        "driver": {
+            "type": "select",
+            "label": "Motor de Captcha",
+            "description": "Selecciona el mecanismo de verificación antibot",
+            "default": "internal",
+            "options": {
+                "internal": "Interno Matemático SVG (Sin dependencias externas)",
+                "recaptcha": "Google reCAPTCHA v3 (requiere Site Key y Secret Key)",
+                "turnstile": "Cloudflare Turnstile (requiere Site Key y Secret Key)",
+                "both": "Interno + Google (el envío pasa si supera cualquiera de los dos)"
+            }
+        },
+        "min_score": {
+            "type": "number",
+            "label": "Puntuación mínima reCAPTCHA v3",
+            "description": "Umbral de 0 a 1 para aceptar la verificación de Google (por defecto 0.5)",
+            "default": 0.5,
+            "required": false
+        },
+        "site_key": {
+            "type": "text",
+            "label": "Site Key (Clave Pública)",
+            "description": "Clave pública para el widget de Cloudflare Turnstile o Google reCAPTCHA",
+            "placeholder": "0x4AAAAAA...",
+            "required": false
+        },
+        "secret_key": {
+            "type": "password",
+            "label": "Secret Key (Clave Privada)",
+            "description": "Clave secreta del proveedor para validación server-side",
+            "secret": true,
+            "required": false
+        }
+    }
+}

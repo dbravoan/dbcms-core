@@ -1,0 +1,26 @@
+@layer components {
+    @media (min-width: 768px) {
+        .cms-rich-editor-split { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .cms-rich-editor-split > [data-preview] { border-block-start: 0; border-inline-start: 1px solid var(--admin-border); }
+    }
+    .cms-rich-text :where(img, audio, video) { max-inline-size: 100%; }
+    .admin-rich-editor :where([data-canvas], [data-preview]) { contain: layout paint; }
+    .cms-rich-text { overflow-wrap: anywhere; }
+    .cms-rich-text :where(p, ul, ol, blockquote, pre, hr) { margin-block: .5em; }
+    .cms-rich-text :where(h1, h2, h3, h4, h5, h6) {
+        margin-block: .65em .35em;
+        font-weight: 700;
+        line-height: 1.25;
+    }
+    .cms-rich-text :where(h1) { font-size: 1.75em; }
+    .cms-rich-text :where(h2) { font-size: 1.5em; }
+    .cms-rich-text :where(h3) { font-size: 1.25em; }
+    .cms-rich-text :where(ul, ol) { padding-inline-start: 1.5em; }
+    .cms-rich-text :where(ul) { list-style: disc; }
+    .cms-rich-text :where(ol) { list-style: decimal; }
+    .cms-rich-text :where(a) { text-decoration: underline; }
+    .cms-rich-text :where(blockquote) { border-inline-start: .2em solid currentColor; padding-inline-start: .75em; }
+    .cms-rich-text :where(pre) { overflow-x: auto; }
+    .cms-rich-text > :first-child,
+    .cms-rich-text > .tiptap > :first-child { margin-block-start: 0; }
+}

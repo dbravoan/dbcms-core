@@ -1,0 +1,6 @@
+.build
+.git
+vendor
+node_modules
+.env
+.env.*

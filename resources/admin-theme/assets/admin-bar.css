@@ -1,0 +1,43 @@
+/**
+ * dbCMS — Frontoffice admin bar design tokens (Dark Cyberpunk).
+ *
+ * Mirrors the component's :root defaults explicitly so the full token contract
+ * is discoverable per theme. Loaded on demand by
+ * `components/frontoffice-admin-bar.blade.php`.
+ */
+html.theme-dbcms {
+    --admin-bar-bg: rgba(18, 18, 18, 0.95);
+    --admin-bar-panel: #1A1A1A;
+    --admin-bar-panel-alt: #181818;
+    --admin-bar-border: rgba(0, 255, 153, 0.20);
+    --admin-bar-border-soft: #1F2937;
+    --admin-bar-border-strong: #00FF99;
+    --admin-bar-text: #FFFFFF;
+    --admin-bar-muted: #9CA3AF;
+    --admin-bar-accent: #00FF99;
+    --admin-bar-accent-hover: #00FF99;
+    --admin-bar-accent-contrast: #121212;
+    --admin-bar-chip-bg: rgba(0, 255, 153, 0.10);
+    --admin-bar-chip-border: rgba(0, 255, 153, 0.30);
+    --admin-bar-hover-bg: #1A1A1A;
+    --admin-bar-glow: rgba(0, 255, 153, 0.35);
+    --admin-bar-pill-bg: #121212;
+    --admin-bar-pill-text: #00FF99;
+    --admin-bar-pill-border: #00FF99;
+    --admin-bar-pill-hover-bg: #00FF99;
+    --admin-bar-pill-hover-text: #121212;
+    --admin-bar-font: 'Google Sans Code', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    --admin-bar-shadow: 0 4px 25px rgba(0, 0, 0, 0.85);
+
+    /* Alert surfaces: dark translucent tint + high-contrast text. */
+    --admin-bar-alert-warning-bg: rgba(245, 158, 11, 0.12);
+    --admin-bar-alert-warning-border: rgba(245, 158, 11, 0.45);
+    --admin-bar-alert-warning-text: #FDE68A;
+    --admin-bar-alert-warning-icon: #FBBF24;
+    --admin-bar-alert-success-bg: rgba(0, 255, 153, 0.10);
+    --admin-bar-alert-success-border: rgba(0, 255, 153, 0.40);
+    --admin-bar-alert-success-text: #6EE7B7;
+    --admin-bar-alert-danger-bg: rgba(244, 63, 94, 0.12);
+    --admin-bar-alert-danger-border: rgba(244, 63, 94, 0.45);
+    --admin-bar-alert-danger-text: #FDA4AF;
+}

@@ -1,0 +1,66 @@
+{
+    "skeleton": "laravel/laravel:v13.11.0",
+    "files": {
+        "bootstrap/app.php": [
+            "5affac529645646b3e4d599096e79c194aac63e8293690364b856d72c1e9ecbf"
+        ],
+        "public/index.php": [
+            "eba77cba39695b6bd091fe5211d481f7ebb2ce2d8d26230b5a609465d0a4aff9"
+        ],
+        "config/auth.php": [
+            "c7e204e9785c9f596d66fb884b493f658f2327f157646bdb4088efd6b3a7773f"
+        ],
+        "resources/css/app.css": [
+            "02db84e827e06d8349293e9797eb8d81465e109e91976775964c4bf873b6fab5"
+        ],
+        "resources/js/app.js": [
+            "101ead936a2281d53dcc064b7e2a2ab0d53b92ef3ef7b34b668673007895c860"
+        ],
+        "vite.config.js": [
+            "f413e14379e2db8b200c63a6326b925f6d47cc0df458c77bfe188cfc23e8081f"
+        ],
+        "routes/web.php": [
+            "248c7eeeb43bb61ee4fb6603e52b44843c64f72a841d671bcd41871aab23f970"
+        ],
+        "database/migrations/0001_01_01_000000_create_users_table.php": [
+            "10d79883bc08ce46510f9ad8b1830b4d06d586dc56ae2c8bac3b3e491f69a90f"
+        ],
+        "database/migrations/0001_01_01_000001_create_cache_table.php": [
+            "fbb4665e5a977e71df4e74ec75b3c06ca4f17ad0de7138fe9786639189978e77"
+        ],
+        "database/migrations/0001_01_01_000002_create_jobs_table.php": [
+            "df4910687180313a14a3f96a8bddd808ae145ed1b107cd772caf865c0dc2b746"
+        ],
+        "app/Models/User.php": [
+            "1dca1344e88308fe405ae050f02bd65081a649de65ec86f2ee2beabbb4706afa"
+        ],
+        "database/factories/UserFactory.php": [
+            "50bdc543f1b09d1a57260be55ad0e1a68aee4b34f63e1109dc94d9bcd3080526"
+        ],
+        "database/seeders/DatabaseSeeder.php": [
+            "cf8e4b6e48360218bb5534f66419c955288f78338eb8a3dba9d8ac3394ec3dbc"
+        ],
+        "resources/views/welcome.blade.php": [
+            "bdb9bb7d2eecceb3581e429545b6ec96014ccab6d0ae83d4c52930e9a15f7d65"
+        ],
+        "tests/Feature/ExampleTest.php": [
+            "aaa4a192fb4aa96d4e81eda06a29968da3d9a73b71026b87a67297e66dd985b8"
+        ],
+        "tests/Unit/ExampleTest.php": [
+            "ffacae5c1a2a44c809420af5b3b404910da1b12167d58764dac6d10b8ba8cfaf"
+        ],
+        "routes/console.php": [
+            "9adccc33e7dd400683e434774077c7fdb2f299c5712cedf16a43fdf56f2850fa"
+        ]
+    },
+    "remove": [
+        "app/Models/User.php",
+        "database/factories/UserFactory.php",
+        "resources/views/welcome.blade.php",
+        "tests/Feature/ExampleTest.php",
+        "tests/Unit/ExampleTest.php",
+        "database/migrations/0001_01_01_000000_create_users_table.php",
+        "database/migrations/0001_01_01_000001_create_cache_table.php",
+        "database/migrations/0001_01_01_000002_create_jobs_table.php"
+    ]
+}

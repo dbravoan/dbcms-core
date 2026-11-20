@@ -1,0 +1,25 @@
+{
+    "name": "dbcms",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "dev": "vite",
+        "build": "vite build"
+    },
+    "devDependencies": {
+        "@tailwindcss/vite": "^4.3.5",
+        "laravel-vite-plugin": "^3.2.1",
+        "tailwindcss": "^4.3.5",
+        "vite": "^8.3.8"
+    },
+    "dependencies": {
+        "@alpinejs/collapse": "^3.17.4",
+        "@fortawesome/fontawesome-free": "^6.7.2",
+        "@tiptap/core": "^3.34.0",
+        "@tiptap/starter-kit": "^3.34.0",
+        "alpinejs": "^3.14.9",
+        "lottie-web": "^5.13.0",
+        "sortablejs": "^1.15.6",
+        "swiper": "^14.4.0"
+    }
+}

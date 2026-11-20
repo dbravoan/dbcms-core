@@ -1,0 +1,187 @@
+{
+    "$schema": "https://getcomposer.org/schema.json",
+    "name": "fixture/dbcms-package",
+    "type": "project",
+    "description": "The skeleton application for the Laravel framework.",
+    "keywords": [
+        "laravel",
+        "framework"
+    ],
+    "license": "MIT",
+    "require": {
+        "php": "^8.3",
+        "laravel/framework": "^13.17",
+        "laravel/tinker": "^3.0",
+        "dbravoan/dbcms-core": "0.0.1",
+        "fixture/fixture-theme": "0.1.0",
+        "fixture/fixture-alternate": "0.1.0",
+        "fixture/admin-theme": "0.1.0",
+        "fixture/blocks": "0.1.0"
+    },
+    "require-dev": {
+        "fakerphp/faker": "^1.23",
+        "laravel/pail": "^1.2.5",
+        "laravel/pao": "^1.0.6",
+        "laravel/pint": "^1.14",
+        "mockery/mockery": "^1.6",
+        "nunomaduro/collision": "^8.1",
+        "larastan/larastan": "^3.0",
+        "laravel/sail": "^1.26",
+        "pestphp/pest": "^4.0",
+        "pestphp/pest-plugin-arch": "^4.0",
+        "pestphp/pest-plugin-laravel": "^4.0",
+        "phpstan/phpstan": "^2.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "app/",
+            "Database\\Factories\\": "database/factories/",
+            "Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "../../tests/"
+        },
+        "exclude-from-classmap": [
+            "../../tests/Fixtures/"
+        ]
+    },
+    "extra": {
+        "laravel": {
+            "dont-discover": []
+        }
+    },
+    "config": {
+        "optimize-autoloader": false,
+        "preferred-install": "dist",
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true,
+            "php-http/discovery": true
+        },
+        "audit": {
+            "block-insecure": true
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "repositories": [
+        {
+            "type": "path",
+            "url": "../..",
+            "options": {
+                "symlink": true,
+                "reference": "none",
+                "versions": {
+                    "dbravoan/dbcms-core": "0.0.1"
+                }
+            }
+        },
+        {
+            "type": "package",
+            "package": {
+                "name": "fixture/fixture-theme",
+                "version": "0.1.0",
+                "type": "dbcms-theme",
+                "license": "MIT",
+                "require": {
+                    "dbravoan/dbcms-core": "~0.0.1"
+                },
+                "extra": {
+                    "dbcms": {
+                        "identifier": "fixture-theme",
+                        "name": "External fixture-theme"
+                    }
+                },
+                "dist": {
+                    "type": "zip",
+                    "url": "file:///workspace/package/.build/fixture-packages/fixture-fixture-theme.zip",
+                    "reference": "63eedab895c92c2f4eed16b1a2649879df9c2d340377374c95ebfb71f77e0214",
+                    "shasum": "4d7c35acb1453b11a306069db8e9c373833dd767"
+                }
+            }
+        },
+        {
+            "type": "package",
+            "package": {
+                "name": "fixture/fixture-alternate",
+                "version": "0.1.0",
+                "type": "dbcms-theme",
+                "license": "MIT",
+                "require": {
+                    "dbravoan/dbcms-core": "~0.0.1"
+                },
+                "extra": {
+                    "dbcms": {
+                        "identifier": "fixture-alternate",
+                        "name": "External fixture-alternate"
+                    }
+                },
+                "dist": {
+                    "type": "zip",
+                    "url": "file:///workspace/package/.build/fixture-packages/fixture-fixture-alternate.zip",
+                    "reference": "ccb827aa2fca685555f17e39a352451dbe588a595c8f65077147c020a87bade8",
+                    "shasum": "946bed699c36aa5f4b01930259be1d4f53fb1088"
+                }
+            }
+        },
+        {
+            "type": "package",
+            "package": {
+                "name": "fixture/admin-theme",
+                "version": "0.1.0",
+                "type": "dbcms-admin-theme",
+                "license": "MIT",
+                "require": {
+                    "dbravoan/dbcms-core": "~0.0.1"
+                },
+                "extra": {
+                    "dbcms": {
+                        "identifier": "fixture-admin",
+                        "name": "Fixture Admin"
+                    }
+                },
+                "dist": {
+                    "type": "zip",
+                    "url": "file:///workspace/package/.build/fixture-packages/fixture-admin-theme.zip",
+                    "reference": "4cdc1bd6291e1c4526a8884521df9da49132c5d572122e298820ecac565ab63d",
+                    "shasum": "f80ba31dd886182995f223afd6da69fa07389646"
+                }
+            }
+        },
+        {
+            "type": "package",
+            "package": {
+                "name": "fixture/blocks",
+                "version": "0.1.0",
+                "type": "dbcms-block-package",
+                "license": "MIT",
+                "require": {
+                    "dbravoan/dbcms-core": "~0.0.1"
+                },
+                "autoload": {
+                    "psr-4": {
+                        "Fixture\\Blocks\\": "./"
+                    }
+                },
+                "extra": {
+                    "dbcms": {
+                        "identifier": "fixture_blocks",
+                        "name": "Fixture blocks",
+                        "blocks": [
+                            "Fixture\\Blocks\\ExternalBlock",
+                            "Fixture\\Blocks\\ExternalMetric"
+                        ]
+                    }
+                },
+                "dist": {
+                    "type": "zip",
+                    "url": "file:///workspace/package/.build/fixture-packages/fixture-blocks.zip",
+                    "reference": "00c4f4c2e78a0e4d40ac67c1242156e4d7ad79d3a7a1ea0eed8d7c452fa1d8a6",
+                    "shasum": "d2e0f5cb7fe4c07888b185f2f4c72e8a5030825f"
+                }
+            }
+        }
+    ]
+}

@@ -1,0 +1,3 @@
+<div data-cms-hotspots class="cms-hotspots"><div class="cms-hotspots-image">@if($p['image_url'] !== '')<img src="{{ $p['image_url'] }}" alt="{{ $p['image_alt'] }}" loading="lazy" decoding="async">@endif
+@foreach($p['items'] as $index => $item)<button type="button" data-hotspot-button="{{ $index }}" aria-controls="{{ $uid }}-{{ $index }}" aria-expanded="false" aria-label="{{ $item['label'] ?? '' }}" style="left: {{ $item['x'] ?? 50 }}%; top: {{ $item['y'] ?? 50 }}%" hidden>{{ $index + 1 }}</button>@endforeach
+</div><div class="cms-hotspots-panels">@foreach($p['items'] as $index => $item)<details data-hotspot-panel="{{ $index }}" id="{{ $uid }}-{{ $index }}"><summary>{{ $item['label'] ?? '' }}</summary>{!! $item['content_html'] ?? '' !!}</details>@endforeach</div></div>

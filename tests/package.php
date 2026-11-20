@@ -1,0 +1,5 @@
+<?php
+
+declare(strict_types=1);
+
+return ['laravel' => ['version' => '13.11.0', 'reference' => '06d016a364a37430eec9cbc52209adce3d7667ce'], 'kind' => 'core', 'distProbe' => 'tests/Support/DistributionProbe.php', 'core' => '0.0.1', 'fixtureVersion' => '0.0.1', 'theme' => 'fixture-theme', 'adminTheme' => 'dbcms', 'require' => [], 'sourceDirs' => ['src'], 'fixturePackages' => ['tests/Fixtures/ExternalTheme', 'tests/Fixtures/AlternateTheme', 'tests/Fixtures/ExternalAdminTheme', 'tests/Fixtures/ExternalBlocks'], 'testPaths' => ['Native', 'Architecture', 'Pure', 'Unit', 'Smoke', 'Feature', 'Regression', 'Release', 'Concurrency'], 'modules' => [], 'blockTypes' => ['map', 'spacer', 'quote', 'image', 'playlist', 'heading', 'alert', 'button', 'accordion', 'price', 'lottie', 'rating', 'counter', 'tabs', 'carousel', 'list', 'hotspots', 'countdown', 'icon', 'code_embed', 'video', 'drawer', 'progress', 'separator', 'rich_text', 'kpi', 'roi', 'charts'], 'blockPackages' => [], 'privacyProcessing' => [], 'preserveRows' => [], 'profiles' => []];

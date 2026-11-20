@@ -1,0 +1,1 @@
+<div class="cms-rating"><span class="cms-rating-stars" aria-hidden="true">@for($star = 1; $star <= $ratingMax; $star++)<span class="{{ $star <= $ratingValue ? 'cms-rating-filled' : '' }}">★</span>@endfor</span><span>{{ $ratingValue }} / {{ $ratingMax }}@if($p['label'] !== '') — {{ $p['label'] }}@endif</span></div>

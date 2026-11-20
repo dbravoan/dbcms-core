@@ -1,0 +1,30 @@
+@layer components {
+    /* The theme's cap includes its gutters, matching its original border box.
+       Tracks use the available parent width, including when a scrollbar exists. */
+    .cms-content-region {
+        display: grid;
+        grid-template-columns:
+            [viewport-start] minmax(0, 1fr)
+            [theme-start] minmax(0, min(
+                calc(100% - 2 * var(--cms-content-gutter, 1rem)),
+                calc(var(--cms-content-max-width, 80rem) - 2 * var(--cms-content-gutter, 1rem))
+            ))
+            [theme-end] minmax(0, 1fr) [viewport-end];
+        inline-size: 100%;
+        min-inline-size: 0;
+        align-content: start;
+    }
+
+    .cms-content-region > * {
+        grid-column: theme;
+        min-inline-size: 0;
+        max-inline-size: 100%;
+    }
+
+    /* A page region can occupy its layout region's full available width.
+       Descendant extent markers never promote an ancestor or escape its track. */
+    .cms-content-region > [data-cms-extent="viewport"],
+    .cms-content-region > .cms-content-region {
+        grid-column: viewport;
+    }
+}

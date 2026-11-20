@@ -1,0 +1,1 @@
+<div class="cms-counter" data-cms-counter data-value="{{ $p['value'] }}" data-start="{{ $p['start'] }}" data-duration="{{ $p['duration'] }}" data-decimals="{{ $counterDecimals }}" data-locale="{{ $locale }}"><span>{{ $p['prefix'] }}</span><span data-counter-value>{{ $counterValue }}</span><span>{{ $p['suffix'] }}</span>@if($p['label'] !== '')<p>{{ $p['label'] }}</p>@endif</div>

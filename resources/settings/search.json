@@ -1,0 +1,59 @@
+{
+    "name": "General Search",
+    "settings": {
+        "is_indexable": {
+            "type": "boolean",
+            "label": "Indexar la búsqueda en Google",
+            "description": "La página de búsqueda nace en noindex. Actívalo aquí (o desde Filtros y búsquedas) cuando su contenido aporte valor: entonces el hub del buscador entra en el sitemap y en llms.txt. Las páginas de resultados siguen siendo dinámicas y no se publican en el sitemap.",
+            "default": false
+        },
+        "results_per_page": {
+            "type": "number",
+            "label": "Resultados por página",
+            "description": "Número de resultados mostrados por página en el buscador general",
+            "default": 12,
+            "placeholder": "12"
+        },
+        "min_results_to_index": {
+            "type": "number",
+            "label": "Mínimo de resultados para indexar",
+            "description": "Una búsqueda con menos resultados que este número se sirve en noindex (contenido pobre)",
+            "default": 3,
+            "placeholder": "3"
+        },
+        "track_terms": {
+            "type": "boolean",
+            "label": "Registrar los términos buscados",
+            "description": "Guarda qué busca la gente (y qué no encuentra) para decidir qué páginas merecen ser indexadas o creadas. Las consultas pueden contener datos personales: configura la retención y revisa la base jurídica antes de activarlo.",
+            "default": false
+        },
+        "retention_days": {
+            "type": "number",
+            "label": "Días de conservación de términos",
+            "description": "Plazo de la política search_terms revisada. Se modifica en Privacidad; se conserva para limpiar datos después de retirar el registro.",
+            "default": 90,
+            "placeholder": "90",
+            "readonly": true
+        },
+        "slug_default": {
+            "type": "text",
+            "label": "Slug base de la búsqueda",
+            "description": "Ruta raíz por defecto del buscador (por ejemplo: buscar o search)",
+            "default": "buscar",
+            "placeholder": "buscar"
+        },
+        "slug_{locale}": {
+            "label": "Slug de la búsqueda en {language} ({locale})",
+            "description": "Ruta del buscador para el idioma {language}. Si se deja vacío, se usa el slug base.",
+            "default": "buscar",
+            "placeholder": "buscar",
+            "defaults": {
+                "es": "buscar",
+                "en": "search",
+                "ca": "cercar",
+                "fr": "recherche",
+                "de": "suche"
+            }
+        }
+    }
+}

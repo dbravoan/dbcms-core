@@ -1,0 +1,7 @@
+<div data-cms-playlist data-playlist-tracks="{{ $tracksJson }}" data-order="{{ $settings['order'] }}" data-repeat="{{ $settings['repeat'] }}" data-auto-advance="{{ $settings['auto_advance'] ? 'true' : 'false' }}">
+    <{{ $tag }} data-playlist-player id="{{ $uid }}-player" aria-label="{{ $tracks[0]['title'] ?: __('Reproductor multimedia') }}" controls preload="none" src="{{ $tracks[0]['url'] }}" @if($tag === 'video' && $tracks[0]['poster'] !== '') poster="{{ $tracks[0]['poster'] }}" @endif>
+        @if($tag === 'video' && $tracks[0]['subtitle'] !== '')<track kind="subtitles" src="{{ $tracks[0]['subtitle'] }}" srclang="{{ $tracks[0]['language'] }}" label="{{ $tracks[0]['subtitle_label'] }}">@endif
+    </{{ $tag }}>
+    <div data-playlist-controls hidden><div class="cms-playlist-actions"><button type="button" data-playlist-previous>{{ __('Pista anterior') }}</button><button type="button" data-playlist-next>{{ __('Pista siguiente') }}</button><span data-playlist-current role="status">{{ $tracks[0]['title'] }}</span></div><ol data-playlist-list>@foreach($tracks as $index => $track)<li><button type="button" data-playlist-select="{{ $index }}" @if($index === 0) aria-current="true" @endif>{{ $track['title'] ?: __('Pista').' '.($index + 1) }}</button></li>@endforeach</ol></div>
+    <noscript><ol>@foreach($tracks as $track)<li><a href="{{ $track['url'] }}">{{ $track['title'] ?: __('Abrir archivo multimedia') }}</a></li>@endforeach</ol></noscript>
+</div>
