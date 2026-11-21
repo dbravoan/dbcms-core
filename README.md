@@ -7,16 +7,13 @@ Core incluye bloques nativos y la marca de administración `dbcms`.
 
 ## Crear una web
 
-```bash
-composer global require dbravoan/dbcms-installer:~0.2.0
-dbcms new mi-web
-```
-
-El instalador crea Laravel, instala core y el tema `default-clean`, permite elegir
-extensiones y compila los recursos. Para abrir `/install`, introduce el código
+Sigue la [guía de Installer](https://github.com/dbravoan/dbcms-installer#crear-una-web)
+para crear la web con Docker o con PHP local. El instalador crea Laravel, instala
+Core y el tema `default-clean` por defecto, permite elegir extensiones y compila
+los recursos. Para abrir `/install`, introduce el código
 de un solo uso guardado como `CMS_INSTALL_TOKEN` en el archivo `.env` del
-servidor. Si pierdes la sesión, genera un código nuevo con `openssl rand -hex 32`,
-actualiza ese valor y vuelve al asistente. Usa HTTPS si accedes en remoto.
+servidor. Si pierdes la sesión, [recupera el acceso al asistente](https://github.com/dbravoan/dbcms-installer#recupera-el-acceso-al-asistente).
+Usa HTTPS si accedes en remoto.
 Cada proyecto conserva sus dependencias y lockfiles; el despliegue le pertenece.
 
 ## Integración en Laravel limpio
