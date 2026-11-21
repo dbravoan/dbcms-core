@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.0.2
+
+- `cms:setup --resolve-packages` devuelve la composición inicial a partir de las listas de paquetes que instala Composer. Valida sus tipos y elige los temas activos según el orden solicitado.
+
 ## 0.0.1
 
 - Editor Rich Text compartido para bloques y campos traducibles de páginas Blade. El catálogo MCP expone los campos de cada plantilla. Véase [Páginas Blade](docs/EXTENSIONS.md#páginas-blade).

@@ -14,11 +14,68 @@ use Illuminate\Support\Facades\File;
 /** Integration files for a new Laravel application; never migrates or queries data. */
 final class ApplicationScaffolder
 {
+    private const DEFAULT_THEME_PACKAGE = 'dbravoan/dbcms-theme-default-clean';
+
     public function __construct(
         private readonly ComposerPackages $packages,
         private readonly AdminThemeServiceInterface $adminThemes,
         private readonly InstallationEnvironmentServiceInterface $environment,
     ) {}
+
+    /** @param array<string, list<string>> $selected Composer package names in request order.
+     * @return array{theme: string, admin_theme: string, modules: list<string>, blocks: list<string>}|array{required_theme_package: string}
+     */
+    public function resolvePackages(array $selected): array
+    {
+        $installed = [];
+        foreach ([
+            'theme' => 'dbcms-theme',
+            'admin-theme' => 'dbcms-admin-theme',
+            'module' => 'dbcms-module',
+            'block-package' => 'dbcms-block-package',
+        ] as $option => $type) {
+            $installed[$option] = [];
+            foreach ($this->packages->all($type) as $identifier => $package) {
+                $installed[$option][$package['package']] = $identifier;
+            }
+            foreach ($selected[$option] ?? [] as $name) {
+                if (! isset($installed[$option][$name])) {
+                    throw new \DomainException("El paquete {$name} indicado con --{$option} debe estar instalado con el tipo Composer {$type}.");
+                }
+            }
+        }
+
+        $packages = $selected['package'] ?? [];
+        $theme = $this->activeTheme($installed['theme'], $selected['theme'] ?? [], $packages, 'theme');
+        $adminTheme = $this->activeTheme($installed['admin-theme'], $selected['admin-theme'] ?? [], $packages, 'admin-theme');
+        if ($theme === null) {
+            return ['required_theme_package' => self::DEFAULT_THEME_PACKAGE];
+        }
+
+        return [
+            'theme' => $theme,
+            'admin_theme' => $adminTheme ?? 'dbcms',
+            'modules' => array_keys($this->packages->modules()),
+            'blocks' => array_keys($this->packages->all('dbcms-block-package')),
+        ];
+    }
+
+    /** @param array<string, string> $installed Identifiers keyed by Composer name.
+     * @param  list<string>  $typed
+     * @param  list<string>  $packages
+     */
+    private function activeTheme(array $installed, array $typed, array $packages, string $flag): ?string
+    {
+        $name = $typed[0] ?? array_find($packages, static fn (string $package): bool => isset($installed[$package]));
+        if ($name !== null) {
+            return $installed[$name];
+        }
+        if (count($installed) > 1) {
+            throw new \DomainException("Indica el tema inicial con --{$flag}. Temas instalados: ".implode(', ', array_keys($installed)).'.');
+        }
+
+        return $installed[array_key_first($installed)] ?? null;
+    }
 
     public function prepare(string $theme, string $adminTheme, string $modules = '', string $blocks = ''): void
     {

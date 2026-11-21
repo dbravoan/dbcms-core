@@ -125,6 +125,10 @@ Usa Composer/npm, Sail oficial y comprobaciones Docker aisladas. Cada repositori
 comprueba sus fuentes y sus integraciones declaradas con sus pruebas. El instalador
 CLI `dbcms new` crea Laravel e instala la composición mediante Composer;
 `cms:setup` prepara los archivos del proyecto sin acceder a la base de datos.
+Antes de preparar los archivos, `cms:setup --resolve-packages=<json>` lee los
+metadatos instalados y devuelve los identificadores de la composición inicial.
+El JSON de entrada usa los nombres de las opciones del instalador como claves
+y listas ordenadas de nombres Composer como valores. Este modo es de solo lectura.
 El asistente web y `cms:install` conservan el aprovisionamiento explícito.
 El despliegue pertenece a cada proyecto consumidor.
 Las pruebas de instalación usan archivos y bases de datos desechables. Protege

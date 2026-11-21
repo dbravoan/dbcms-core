@@ -8,7 +8,7 @@ Core incluye bloques nativos y la marca de administración `dbcms`.
 ## Crear una web
 
 ```bash
-composer global require dbravoan/dbcms-installer:~0.0.1
+composer global require dbravoan/dbcms-installer:~0.2.0
 dbcms new mi-web
 ```
 
