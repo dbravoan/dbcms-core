@@ -1,0 +1,34 @@
+{
+    "html_class": {
+        "description": "HTML class tokens for the active front theme CSS. Distinct from appearance.classes (design presets).",
+        "pattern": "^[a-z][a-z0-9_-]{0,63}$",
+        "max": 16,
+        "allowlist": {
+            "intent": "Portada · intent",
+            "guides": "Portada · guías",
+            "centers-band": "Banda de centros",
+            "faqs": "Portada · FAQ",
+            "professional": "Portada · profesionales",
+            "folio-hero": "Hero editorial",
+            "folio-gestures": "Gestos del ritual",
+            "folio-next": "Siguiente lectura",
+            "contact-hero": "Hero de contacto"
+        },
+        "allowlist_required": true
+    },
+    "classes": [
+        "stack",
+        "row",
+        "card"
+    ],
+    "example": {
+        "appearance": {
+            "html_class": [
+                "folio-hero"
+            ],
+            "classes": [
+                "stack"
+            ]
+        }
+    }
+}

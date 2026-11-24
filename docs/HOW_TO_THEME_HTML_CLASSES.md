@@ -95,16 +95,46 @@ inspector y MCP muestran las etiquetas y rechazan el resto.
 
 ## 4. Capturas de verificación
 
-Con una aplicación desechable, tema compilado y sesión de Playwright
+Ejemplo real (tema INÜO, Core ≥ 0.0.3): sección de tratamiento con
+`appearance.html_class: ["folio-hero"]`.
+
+**Backoffice** — Diseño → Avanzado → *Clases CSS del tema* = `folio-hero`
+(distinto de *Presets de diseño* = `appearance.classes`):
+
+![Inspector: Clases CSS del tema](images/html-class-theme/02-backoffice-inspector.png)
+
+**Público** — el nodo de sección lleva `folio-hero` en `class` y el CSS del tema
+pinta el hero:
+
+![Vista pública con folio-hero](images/html-class-theme/01-publico.png)
+
+**MCP** — fragmento de `cms_block_types` (`view: "detail"`) con el esquema de
+`appearance.html_class` (patrón, máximo, allowlist del tema):
+
+```json
+{
+  "html_class": {
+    "description": "HTML class tokens for the active front theme CSS. Distinct from appearance.classes (design presets).",
+    "pattern": "^[a-z][a-z0-9_-]{0,63}$",
+    "max": 16,
+    "allowlist": {
+      "folio-hero": "Hero editorial",
+      "intent": "Portada · intent"
+    },
+    "allowlist_required": true
+  }
+}
+```
+
+Ejemplo completo de respuesta: [`images/html-class-theme/03-mcp-appearance-html-class.json`](images/html-class-theme/03-mcp-appearance-html-class.json).
+
+Regenerar capturas con una app desechable, tema compilado y sesión de Playwright
 (`DBCMS_BROWSER_BASE_URL`, `DBCMS_BROWSER_STORAGE_STATE`, token MCP si aplica):
 
 ```bash
 DBCMS_HTML_CLASS_CAPTURES=/tmp/dbcms-html-class-captures \
   npx playwright test --config tests/Browser/playwright.config.mjs html-class-theme.spec.mjs
 ```
-
-Las capturas quedan en el directorio indicado: inspector Avanzado, vista previa
-pública con la clase en el DOM, y resumen MCP del esquema + parche.
 
 ## Relación con plantillas
 
