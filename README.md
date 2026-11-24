@@ -27,11 +27,13 @@ Consulta [desarrollo](docs/DEVELOPMENT.md) para ejecutar herramientas en Docker/
 
 - [Administrar contenidos y configurar el sitio](docs/USAGE.md).
 - [Crear landings con Rich Text desde el panel y MCP](docs/HOW_TO_RICH_TEXT_LANDINGS.md).
+- [Personalizar secciones con clases CSS del tema](docs/HOW_TO_THEME_HTML_CLASSES.md).
 - [Crear y desplegar una web con Installer](https://github.com/dbravoan/dbcms-installer).
 
 ## Programar y extender
 
 - [Arquitectura y responsabilidades](docs/CORE_AND_EXTENSIONS.md).
+- [Extender un sitio sin modificar Core](docs/HOW_TO_LAYERED_EXTENSION.md).
 - [Código limpio y reutilización](docs/CONVENTIONS.md).
 - [Contratos de módulos, temas, bloques y Blade](docs/EXTENSIONS.md).
 - [Desarrollo](docs/DEVELOPMENT.md), [pruebas](docs/TESTING.md), [publicación](docs/PUBLICATION.md) y [contribución](CONTRIBUTING.md).

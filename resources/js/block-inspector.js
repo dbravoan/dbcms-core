@@ -592,6 +592,30 @@ export function createInspectorFeatures() {
         openInspectorMedia(key, kind) { const column = this.inspectorColumn()?.column; const node = this.selectedNode(); const draftKey = `${this.inspectorSelectionKey()}:base:${key}`; this.beginMediaRequest({ mode: 'inspector', kind, onSelect: file => { const target = column ? (column.style ??= {}) : node; if (!target) return; const parts = key.split('.'); let object = target; for (const part of parts.slice(0, -1)) object = object[part] ??= {}; object[parts.at(-1)] = file.url; delete this.inspectorInvalid[draftKey]; delete this.inspectorDraftValues[draftKey]; } }); },
         appearanceClasses() { return (this.presentationTarget()?.appearance?.classes || []).join(' '); },
         setAppearanceClasses(value) { const target = this.presentationTarget(true); if (!target) return; target.appearance ??= {}; target.appearance.classes = value.split(/\s+/).filter(Boolean); this.syncBlocksToLocale(); },
+        appearanceHtmlClass() { return (this.presentationTarget()?.appearance?.html_class || []).join(' '); },
+        setAppearanceHtmlClass(value) {
+            const target = this.presentationTarget(true);
+            if (!target) return;
+            target.appearance ??= {};
+            const tokens = String(value || '').trim().split(/\s+/).filter(Boolean);
+            if (tokens.length) target.appearance.html_class = tokens;
+            else delete target.appearance.html_class;
+            this.syncBlocksToLocale();
+        },
+        htmlClassHint() {
+            const options = this.editorOptions.htmlClasses || {};
+            const names = Array.isArray(options) ? options : Object.keys(options);
+            const max = this.editorOptions.htmlClassMax || 16;
+            if (names.length) {
+                return t('html_class_hint_allowlist', { max, names: names.map((name) => (options[name] && options[name] !== name ? name + ' · ' + options[name] : name)).join(', ') });
+            }
+            return t('html_class_hint_open', { max });
+        },
+        designPresetsHint() {
+            const options = this.editorOptions.appearanceClasses || [];
+            const names = Array.isArray(options) ? options : Object.keys(options);
+            return t('design_presets_hint', { names: names.join(', ') });
+        },
         previewComposition() { return rootComposition(this.blocks, this.structureRows(), this.selectedId, this.selectedPath); },
         previewFrame() { return this.$el?.querySelector('[data-composition-preview] iframe'); },
         previewWidth() { return { desktop: 1280, tablet: 820, mobile: 390 }[this.previewViewport] || 1280; },

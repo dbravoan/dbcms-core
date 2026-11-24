@@ -475,6 +475,30 @@ export function createEditorFeatures(options = {}) {
         setAppearanceValue(key, value) { const appearance = this.selectedAppearance(true); if (!appearance) return; if (value === '') delete appearance[key]; else appearance[key] = value; this.syncBlocksToLocale(); },
         appearanceClasses() { return (this.selectedNode()?.appearance?.classes || []).join(' '); },
         setAppearanceClasses(value) { const node = this.selectedNode(); if (!node || !this.isBlockAvailable(node)) return; node.appearance ??= {}; node.appearance.classes = value.split(/\s+/).filter(Boolean); this.syncBlocksToLocale(); },
+        appearanceHtmlClass() { return (this.selectedNode()?.appearance?.html_class || []).join(' '); },
+        setAppearanceHtmlClass(value) {
+            const node = this.selectedNode();
+            if (!node || !this.isBlockAvailable(node)) return;
+            node.appearance ??= {};
+            const tokens = String(value || '').trim().split(/\s+/).filter(Boolean);
+            if (tokens.length) node.appearance.html_class = tokens;
+            else delete node.appearance.html_class;
+            this.syncBlocksToLocale();
+        },
+        htmlClassHint() {
+            const options = this.editorOptions.htmlClasses || {};
+            const names = Array.isArray(options) ? options : Object.keys(options);
+            const max = this.editorOptions.htmlClassMax || 16;
+            if (names.length) {
+                return t('html_class_hint_allowlist', { max, names: names.map((name) => (options[name] && options[name] !== name ? name + ' · ' + options[name] : name)).join(', ') });
+            }
+            return t('html_class_hint_open', { max });
+        },
+        designPresetsHint() {
+            const options = this.editorOptions.appearanceClasses || [];
+            const names = Array.isArray(options) ? options : Object.keys(options);
+            return t('design_presets_hint', { names: names.join(', ') });
+        },
         closePreview() { this.inspectorMobilePane = 'edit'; this.showPreview = false; this.previewScope = 'selected'; compositionPreview.reset(); this.previewBusy = false; const opener = previewOpener; previewOpener = null; if (opener?.isConnected) opener.focus?.(); },
         // Toolbar: every root section. Card eye: only the selected section.
         openPreview() { return this.runCompositionPreview('all'); },

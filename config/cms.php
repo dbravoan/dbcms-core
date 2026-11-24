@@ -29,11 +29,23 @@ return [
         'max_animation_bytes' => 5242880,
         'countdown_storage' => ['enabled' => false, 'purpose' => 'preferences', 'max_days' => 30],
         'breakpoints' => ['tablet' => 1024, 'mobile' => 767],
+        /*
+         * Design presets expanded into typed CSS properties (not HTML class names).
+         * See appearance.classes in docs/EXTENSIONS.md.
+         */
         'classes' => [
             'stack' => ['display' => 'flex', 'flex_direction' => 'column', 'gap' => '1rem'],
             'row' => ['display' => 'flex', 'flex_wrap' => 'wrap', 'gap' => '1rem'],
             'card' => ['padding' => '1.5rem', 'border_radius' => 'var(--cms-radius)', 'background_color' => 'var(--cms-surface-2)', 'color' => 'var(--cms-fg)'],
         ],
+        /*
+         * Optional allowlist for appearance.html_class (real HTML classes for the
+         * active front theme). Empty list = any token matching the CSS class pattern.
+         * Themes may merge labels: ['folio-hero' => 'Hero folio', 'intent' => 'Intent'].
+         * A plain list of class names is also accepted.
+         */
+        'html_classes' => [],
+        'html_class_max' => 16,
     ],
 
     'page_views' => [],

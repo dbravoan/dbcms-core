@@ -68,7 +68,10 @@ final class BlockEditorCatalogue
         $contextMarket = app(LocalizationServiceInterface::class)->activeMarkets()->first();
 
         return ['activeBlockTypes' => $active, 'dynamicPayloads' => $dynamic, 'availableTypesJs' => $types,
-            'blockAppearanceProperties' => BlockStyle::properties(), 'blockAppearanceClasses' => array_keys((array) config('cms.blocks.classes', [])),
+            'blockAppearanceProperties' => BlockStyle::properties(),
+            'blockAppearanceClasses' => array_keys((array) config('cms.blocks.classes', [])),
+            'blockHtmlClasses' => BlockStyle::htmlClassOptions(),
+            'blockHtmlClassMax' => max(1, (int) config('cms.blocks.html_class_max', 16)),
             'blockPresentationProperties' => SectionAppearance::properties(),
             'blockAppearanceVariables' => BlockStyle::themeVariables(),
             'blockPreviewUrl' => route('admin.blocks.preview'), 'blockReferenceUrl' => route('admin.blocks.references'),

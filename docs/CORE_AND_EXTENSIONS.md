@@ -4,7 +4,9 @@ Este es el contrato canónico de arquitectura. Las aplicaciones Laravel consumen
 dbCMS mediante Composer. El código del proyecto pertenece a `App`; el CMS
 reutilizable a `DbCms\Core`. La aplicación incorpora módulos, temas y paquetes de
 bloques mediante Composer. El código se cambia en el repositorio propietario y
-la aplicación lo consume como dependencia.
+la aplicación lo consume como dependencia. En una web de producto, Core es
+**intocable**: no se parchea `vendor/` ni se forkear oficiales; se extiende por
+paquetes y contenido. [Extensión por capas](HOW_TO_LAYERED_EXTENSION.md).
 
 ## Responsabilidades y ciclo de vida
 

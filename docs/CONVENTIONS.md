@@ -1,6 +1,6 @@
 # Convenciones de desarrollo
 
-Aplica esta guía a Core, a las extensiones y al código de la aplicación. La [arquitectura](CORE_AND_EXTENSIONS.md) identifica el dueño de cada responsabilidad. El [contrato de extensiones](EXTENSIONS.md) define los puntos de integración.
+Aplica esta guía a Core, a las extensiones y al código de la aplicación. La [arquitectura](CORE_AND_EXTENSIONS.md) identifica el dueño de cada responsabilidad. El [contrato de extensiones](EXTENSIONS.md) define los puntos de integración. En un sitio consumidor, Core y los paquetes oficiales son solo lectura: [extensión por capas](HOW_TO_LAYERED_EXTENSION.md).
 
 ## Buscar y reutilizar antes de implementar
 

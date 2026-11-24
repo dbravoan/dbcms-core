@@ -117,7 +117,7 @@ final class BlockStyle
 
                 continue;
             }
-            if (! in_array($scope, ['base', 'tablet', 'mobile', 'hover', 'focus', 'active', 'selected', 'classes'], true)) {
+            if (! in_array($scope, ['base', 'tablet', 'mobile', 'hover', 'focus', 'active', 'selected', 'classes', 'html_class'], true)) {
                 self::invalid((string) $scope);
             }
             if ($scope === 'classes') {
@@ -132,6 +132,11 @@ final class BlockStyle
 
                 continue;
             }
+            if ($scope === 'html_class') {
+                self::validateHtmlClass($values);
+
+                continue;
+            }
             if (! is_array($values)) {
                 self::invalid((string) $scope);
             }
@@ -139,6 +144,73 @@ final class BlockStyle
                 if (! self::valid((string) $key, $value)) {
                     self::invalid((string) $key);
                 }
+            }
+        }
+    }
+
+    /**
+     * Sanitized HTML class tokens from appearance.html_class for the DOM.
+     * Distinct from appearance.classes (design presets → typed CSS properties).
+     *
+     * @param  array<string,mixed>  $appearance
+     * @return list<string>
+     */
+    public static function htmlClassTokens(array $appearance): array
+    {
+        $values = $appearance['html_class'] ?? [];
+        if ($values === [] || $values === null) {
+            return [];
+        }
+        self::validateHtmlClass($values);
+
+        /** @var list<string> $values */
+        return array_values(array_unique($values));
+    }
+
+    /**
+     * Labels for the editor/MCP when the theme publishes an allowlist.
+     *
+     * @return array<string,string>
+     */
+    public static function htmlClassOptions(): array
+    {
+        $configured = (array) config('cms.blocks.html_classes', []);
+        if ($configured === []) {
+            return [];
+        }
+        if (array_is_list($configured)) {
+            /** @var list<string> $configured */
+            return array_combine($configured, $configured) ?: [];
+        }
+        $options = [];
+        foreach ($configured as $class => $label) {
+            if (is_string($class) && $class !== '' && is_string($label)) {
+                $options[$class] = $label;
+            } elseif (is_int($class) && is_string($label) && $label !== '') {
+                $options[$label] = $label;
+            }
+        }
+
+        return $options;
+    }
+
+    /** @param mixed $values */
+    private static function validateHtmlClass(mixed $values): void
+    {
+        if (! is_array($values) || ! array_is_list($values)) {
+            self::invalid('html_class');
+        }
+        $max = max(1, (int) config('cms.blocks.html_class_max', 16));
+        if (count($values) > $max) {
+            self::invalid('html_class');
+        }
+        $allowlist = self::htmlClassOptions();
+        foreach ($values as $class) {
+            if (! is_string($class) || preg_match('/^[a-z][a-z0-9_-]{0,63}$/D', $class) !== 1) {
+                self::invalid('html_class');
+            }
+            if ($allowlist !== [] && ! array_key_exists($class, $allowlist)) {
+                self::invalid('html_class');
             }
         }
     }

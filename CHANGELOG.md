@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.0.3
+
+- `appearance.html_class` escribe clases HTML del tema en secciones, columnas y bloques. Distinto de `appearance.classes` (presets tipados). Allowlist opcional en `cms.blocks.html_classes`. [Clases CSS del tema](docs/HOW_TO_THEME_HTML_CLASSES.md)
+
 ## 0.0.2
 
 - `cms:setup --resolve-packages` devuelve la composición inicial a partir de las listas de paquetes que instala Composer. Valida sus tipos y elige los temas activos según el orden solicitado.

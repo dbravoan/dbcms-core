@@ -12,9 +12,14 @@
 
     <section class="cms-inspector-essentials">
         <label class="admin-field">
-            <span class="admin-field-label">Clases del proyecto</span>
-            <input type="text" class="admin-control" :value="appearanceClasses()" @change="setAppearanceClasses($event.target.value)" placeholder="Heredar">
-            <span class="admin-field-hint" x-text="'Disponibles: ' + (Array.isArray(editorOptions.appearanceClasses) ? editorOptions.appearanceClasses : Object.keys(editorOptions.appearanceClasses || {})).join(', ')"></span>
+            <span class="admin-field-label">{{ __('admin.block_editor_js.html_class_label') }}</span>
+            <input type="text" class="admin-control" :value="appearanceHtmlClass()" @change="setAppearanceHtmlClass($event.target.value)" :placeholder="@js(__('admin.block_editor_js.html_class_placeholder'))" autocomplete="off" spellcheck="false">
+            <span class="admin-field-hint" x-text="htmlClassHint()"></span>
+        </label>
+        <label class="admin-field">
+            <span class="admin-field-label">{{ __('admin.block_editor_js.design_presets_label') }}</span>
+            <input type="text" class="admin-control" :value="appearanceClasses()" @change="setAppearanceClasses($event.target.value)" :placeholder="@js(__('admin.block_editor_js.design_presets_placeholder'))">
+            <span class="admin-field-hint" x-text="designPresetsHint()"></span>
         </label>
     </section>
 

@@ -62,6 +62,9 @@ final class BlockPresentation
                 default => 'cms-card',
             };
         }
+        foreach (BlockStyle::htmlClassTokens($appearance) as $htmlClass) {
+            $classes[] = $htmlClass;
+        }
         $attributes = ['id' => $id, 'class' => trim(implode(' ', $classes).' '.($attributes['class'] ?? '')), 'data-cms-presentation' => $kind, 'data-cms-extent' => $extent] + $attributes;
         // Motion belongs to sections and blocks; columns only paint layout/background.
         $attributes += ($type === 'drawer' || $kind === 'column') ? [] : $this->motionAttributes($payload);

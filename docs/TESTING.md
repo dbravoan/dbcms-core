@@ -18,6 +18,7 @@ Elige Chromium con `npx playwright install chromium` o indica el ejecutable en
 Para `install-wizard.spec.mjs`, indica `DBCMS_BROWSER_INSTALLER=1` y el
 código de un solo uso de esa aplicación mediante `DBCMS_BROWSER_INSTALL_TOKEN`.
 Los [cuatro recorridos de landings con Rich Text](HOW_TO_RICH_TEXT_LANDINGS.md) documentan cómo reproducir las capturas desde backoffice y MCP.
+Las capturas de [clases HTML del tema](HOW_TO_THEME_HTML_CLASSES.md) (`html-class-theme.spec.mjs`) cubren inspector, DOM público y esquema MCP.
 Las llamadas a proveedores se simulan; una comprobación real se informa aparte.
 
 Consulta [Desarrollo](DEVELOPMENT.md) para preparar fixtures y locks. Al informar

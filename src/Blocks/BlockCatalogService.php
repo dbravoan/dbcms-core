@@ -60,7 +60,21 @@ final class BlockCatalogService
         }
         $result['blocks'] = $this->catalog($destination, $locale, $blockType, $view, $includeReferences, $preset);
         if ($view === 'detail') {
-            $result['appearance'] = ['properties' => BlockStyle::properties(), 'scopes' => ['base', 'tablet', 'mobile', 'hover', 'focus', 'active', 'selected'], 'extent' => ['theme', 'viewport'], 'presentation_properties' => SectionAppearance::properties(), 'theme_variables' => BlockStyle::themeVariables()];
+            $result['appearance'] = [
+                'properties' => BlockStyle::properties(),
+                'scopes' => ['base', 'tablet', 'mobile', 'hover', 'focus', 'active', 'selected'],
+                'extent' => ['theme', 'viewport'],
+                'classes' => array_keys((array) config('cms.blocks.classes', [])),
+                'html_class' => [
+                    'description' => 'HTML class tokens for the active front theme CSS. Distinct from appearance.classes (design presets).',
+                    'pattern' => '^[a-z][a-z0-9_-]{0,63}$',
+                    'max' => max(1, (int) config('cms.blocks.html_class_max', 16)),
+                    'allowlist' => BlockStyle::htmlClassOptions(),
+                    'allowlist_required' => BlockStyle::htmlClassOptions() !== [],
+                ],
+                'presentation_properties' => SectionAppearance::properties(),
+                'theme_variables' => BlockStyle::themeVariables(),
+            ];
         }
 
         return $result;

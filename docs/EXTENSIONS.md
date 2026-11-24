@@ -6,7 +6,9 @@ contribuciones explícitamente. No se ejecuta un gestor de paquetes desde HTTP.
 Para crear una web utiliza el [instalador](https://github.com/dbravoan/dbcms-installer).
 
 Antes de escribir una extensión, identifica un caso equivalente en Core o en un
-paquete y reutiliza su contrato. [Convenciones de desarrollo](CONVENTIONS.md#buscar-y-reutilizar-antes-de-implementar)
+paquete y reutiliza su contrato. En una web de producto Core es **intocable**:
+se extiende por capas, no se modifica el sistema. [Extensión por capas](HOW_TO_LAYERED_EXTENSION.md) ·
+[Convenciones de desarrollo](CONVENTIONS.md#buscar-y-reutilizar-antes-de-implementar)
 
 ## Contratos de paquetes
 
@@ -185,12 +187,24 @@ sus piezas. Conserva la última vista válida mientras editas un valor incomplet
 En móvil puedes alternar entre el inspector y la vista sin perder la selección.
 
 `appearance` admite `base`, `tablet`, `mobile`, `hover`, `focus`, `active`,
-`selected`, `classes` y `extent`. Escritorio, tableta y móvil heredan del tema y
-de los tamaños superiores; sus controles permiten restablecer la herencia. Los
-estados son comunes a los dispositivos: `focus` sigue el foco de los controles y
-`selected` se aplica a controles seleccionables cuando existen. No son combinaciones
-independientes de estado y dispositivo. Las clases permitidas y breakpoints se
-configuran en `cms.blocks`.
+`selected`, `classes`, `html_class` y `extent`. Escritorio, tableta y móvil heredan
+del tema y de los tamaños superiores; sus controles permiten restablecer la
+herencia. Los estados son comunes a los dispositivos: `focus` sigue el foco de
+los controles y `selected` se aplica a controles seleccionables cuando existen.
+No son combinaciones independientes de estado y dispositivo. Los breakpoints y
+los presets tipados se configuran en `cms.blocks`.
+
+`appearance.classes` elige **presets de diseño** (`stack`, `row`, `card`…) definidos
+en `cms.blocks.classes`. Core los fusiona en propiedades tipadas del `<style>`
+scoped; **no** escribe esos nombres en el atributo `class` del HTML.
+
+`appearance.html_class` es la lista de **clases CSS del tema** (tokens
+`^[a-z][a-z0-9_-]{0,63}$`) que Core añade al `class` de la sección, columna o
+bloque. El tema aporta el CSS; Core solo transporta y valida. Si
+`cms.blocks.html_classes` está vacío, cualquier token válido vale; si el tema
+publica una allowlist (lista o mapa `clase => etiqueta`), solo esos nombres
+pasan. El máximo es `cms.blocks.html_class_max`. Guía paso a paso:
+[Personalizar secciones con clases CSS del tema](HOW_TO_THEME_HTML_CLASSES.md).
 
 Se distinguen **anchura del bloque** (dentro de su padre), **anchura interior**
 (límite de su contenido) y **extensión de la fila**. `appearance.extent` vale
@@ -227,7 +241,8 @@ libera sus recursos al retirarlas y respeta movimiento reducido y consentimiento
 
 Los valores de `appearance` tienen prioridad sobre los campos de presentación
 del nodo y los del tema. El inspector cambia únicamente el concepto que editas.
-Los campos editoriales admiten propiedades del catálogo y clases permitidas.
+Los campos editoriales admiten propiedades del catálogo, presets tipados y
+clases HTML del tema (`html_class`).
 
 El editor permite recorrer la estructura, editar zonas declaradas, arrastrar o
 mover con teclado, duplicar y deshacer o rehacer durante la sesión.

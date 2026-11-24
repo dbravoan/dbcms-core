@@ -174,3 +174,45 @@ it('mounts drawer media and motion inside its owned panel without painting the t
         ->and($html)->toContain('.cms-drawer-panel{width:70%;}');
     expect($xpath->query('//*[@data-cms-presentation="block"]/@data-scroll-effect'))->toHaveCount(0);
 });
+
+it('emits appearance.html_class on section and block surfaces without changing design presets', function (): void {
+    $payload = [
+        'id' => 'hero',
+        'type' => 'heading',
+        'text' => 'Hero',
+        'appearance' => [
+            'html_class' => ['folio-hero', 'intent'],
+            'classes' => ['stack'],
+            'base' => ['gap' => '2rem'],
+        ],
+    ];
+    $block = app(BlockRenderer::class)->render('heading', $payload, $this->market, 'es');
+    $section = app(SectionRendererService::class)->renderSection($payload, $this->market, 'es');
+    foreach ([$block, $section] as $html) {
+        expect($html)->toMatch('/class="[^"]*\bfolio-hero\b/')
+            ->toMatch('/class="[^"]*\bintent\b/')
+            ->toContain('display:flex', 'flex-direction:column', 'gap:2rem')
+            ->not->toMatch('/class="[^"]*\bstack\b/');
+    }
+});
+
+it('rejects hostile or unknown html_class tokens and respects an optional theme allowlist', function (): void {
+    expect(fn () => BlockStyle::validate(['html_class' => ['Folio Hero']]))->toThrow(ValidationException::class)
+        ->and(fn () => BlockStyle::validate(['html_class' => ['folio-hero" onclick="alert(1)']]))->toThrow(ValidationException::class)
+        ->and(fn () => BlockStyle::validate(['html_class' => array_map(static fn (int $i): string => 'token'.$i, range(1, 20))]))->toThrow(ValidationException::class);
+
+    BlockStyle::validate(['html_class' => ['folio-hero', 'intent']]);
+    expect(BlockStyle::htmlClassTokens(['html_class' => ['folio-hero', 'intent', 'folio-hero']]))->toBe(['folio-hero', 'intent']);
+
+    config(['cms.blocks.html_classes' => ['folio-hero' => 'Hero folio', 'intent' => 'Intent home']]);
+    expect(BlockStyle::htmlClassOptions())->toBe(['folio-hero' => 'Hero folio', 'intent' => 'Intent home'])
+        ->and(fn () => BlockStyle::validate(['html_class' => ['unknown-skin']]))->toThrow(ValidationException::class);
+    BlockStyle::validate(['html_class' => ['folio-hero']]);
+
+    $catalog = app(BlockCatalogService::class)->describe('page', 'es', 'es', blockType: 'heading', view: 'detail', includeReferences: false);
+    $editor = app(BlockEditorCatalogue::class)->data();
+    expect($catalog['appearance']['html_class']['allowlist'])->toBe(['folio-hero' => 'Hero folio', 'intent' => 'Intent home'])
+        ->and($catalog['appearance']['html_class']['allowlist_required'])->toBeTrue()
+        ->and($catalog['appearance']['classes'])->toContain('stack', 'row', 'card')
+        ->and($editor['blockHtmlClasses'])->toBe(['folio-hero' => 'Hero folio', 'intent' => 'Intent home']);
+});
